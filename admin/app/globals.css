@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f8fafc; /* Nền sáng nhè nhẹ chung */
+  --foreground: #0f172a; /* Slate 900 cho text */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Inter", var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: "Inter", sans-serif;
+  --color-primary: #0d9488; /* Teal 600 - Xanh ngọc Stitch */
+  --color-primary-dark: #0f766e; /* Teal 700 - Xanh ngọc đậm */
+  --color-background-light: #ffffff; /* Các white card */
+  --color-background-dark: #f1f5f9; /* Slate 100 cho background phụ */
+}
+
+/* 
+Loại bỏ Dark Mode 
+- Stitch UI này chuyên thiết kế cho Light Theme 
+*/
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}

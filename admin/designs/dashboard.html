@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#0d9488", // Teal 600
+                "background-light": "#f7f6f8",
+                "background-dark": "#0f172a",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<title>BuildPro CMS - Construction Dashboard</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-200">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-primary/10 bg-white dark:bg-background-dark/50 hidden lg:flex flex-col sticky top-0 h-screen">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+<div>
+<h1 class="font-bold text-lg leading-none">BuildPro</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider font-semibold">Real Estate CMS</p>
+</div>
+</div>
+<nav class="flex-1 px-4 mt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-white transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">apartment</span>
+<span class="font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-medium">Articles</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">imagesmode</span>
+<span class="font-medium">Media</span>
+</a>
+<div class="pt-4 pb-2">
+<p class="px-4 text-[10px] uppercase font-bold text-slate-400 tracking-widest">Admin</p>
+</div>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-primary/10">
+<div class="flex items-center gap-3 p-2 bg-primary/5 rounded-xl">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Professional headshot of project manager" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB53FAR_kdgo7d1GF0lq8VEmEWRrt-xpsD08Lol4jDKlEVKyUZeW8-PDHSVqIEhb8xdGOC8Eu4k6o_dSqA_EchjlpHIWEkLf8SmvfBdKs5hFOzlOKeJ6jfI8jg-ps48exhcWUihGtTbhNFh9FNQA52TwBX_t5MzGo04fTf8T7xI2MI-BNuXG267KrGQKYNKbrbbGduL86Ovt6sx_i0Nv5vFEhNvSJghQSvManyun1tNBytKcY1aRYkwT_egXO9C9-xhgenIqcnDn4Y')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Alex Rivera</p>
+<p class="text-xs text-slate-500 truncate">Project Lead</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-primary transition-colors">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Top Navbar -->
+<header class="h-16 bg-white dark:bg-background-dark/80 border-b border-primary/10 flex items-center justify-between px-8 sticky top-0 z-10 backdrop-blur-md">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search projects, documents, or insights..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 relative transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                    New Project
+                </button>
+</div>
+</header>
+<div class="p-8 space-y-8 max-w-[1400px] mx-auto w-full">
+<!-- Header Section -->
+<section>
+<h2 class="text-2xl font-bold tracking-tight">Executive Dashboard</h2>
+<p class="text-slate-500 dark:text-slate-400">Overview of your real estate portfolio performance for Q3 2024.</p>
+</section>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5">
+<div class="flex items-center justify-between mb-4">
+<div class="size-10 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+<span class="material-symbols-outlined">home_work</span>
+</div>
+<span class="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Projects</p>
+<h3 class="text-3xl font-bold mt-1">124</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5">
+<div class="flex items-center justify-between mb-4">
+<div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined">article</span>
+</div>
+<span class="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">+5.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Active Articles</p>
+<h3 class="text-3xl font-bold mt-1">42</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5">
+<div class="flex items-center justify-between mb-4">
+<div class="size-10 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center">
+<span class="material-symbols-outlined">visibility</span>
+</div>
+<span class="text-xs font-bold text-green-500 bg-green-500/10 px-2 py-1 rounded">+18.0%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Views</p>
+<h3 class="text-3xl font-bold mt-1">1.2M</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5">
+<div class="flex items-center justify-between mb-4">
+<div class="size-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+<span class="material-symbols-outlined">leaderboard</span>
+</div>
+<span class="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-1 rounded">-2.4%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">New Leads</p>
+<h3 class="text-3xl font-bold mt-1">85</h3>
+</div>
+</div>
+<!-- Chart & Side List Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Line Chart Section -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-bold text-lg">Content Performance</h3>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg">Week</button>
+<button class="px-3 py-1 text-xs font-semibold bg-primary text-white rounded-lg">Month</button>
+</div>
+</div>
+<div class="relative h-64 w-full">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 500 200">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0d9488" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#0d9488" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,150 Q50,140 100,80 T200,60 T300,100 T400,30 T500,50 V200 H0 Z" fill="url(#chartGradient)"></path>
+<path d="M0,150 Q50,140 100,80 T200,60 T300,100 T400,30 T500,50" fill="none" stroke="#0d9488" stroke-linecap="round" stroke-width="4"></path>
+</svg>
+<div class="flex justify-between mt-4 px-2">
+<span class="text-xs text-slate-400">Sep 01</span>
+<span class="text-xs text-slate-400">Sep 08</span>
+<span class="text-xs text-slate-400">Sep 15</span>
+<span class="text-xs text-slate-400">Sep 22</span>
+<span class="text-xs text-slate-400">Sep 30</span>
+</div>
+</div>
+</div>
+<!-- Latest Articles -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-primary/5 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-lg">Latest Articles</h3>
+<a class="text-primary text-xs font-bold hover:underline" href="#">View All</a>
+</div>
+<div class="space-y-6 flex-1 overflow-y-auto max-h-[280px] pr-2 scrollbar-thin">
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Modern glass skyscraper architecture detail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDZeIm9BOMwnSEqlhwlobgtkiLDG1XwhqtMz-B_S0--ZftLpPJBdYaAQzrXazHyYe7hB-lJW8pX7q1YdwET12uw5zZUZozUu_SNwpT7xaibZYLV4Bi8XCO1hHpSaNoh41Nhl6MYadJnX0hULVtBKBGM3HHNTEAZClH55Hif5AN2Im6dg1bpjvYIPBUM_QQnN3YBUPnudVmLZ-okDbIPe4OJZlDMoGf2YEyW0jFsPEChO78SZCEn40nzQWUIiiMaq-LlQ_OfQvIv99U')"></div>
+<div>
+<h4 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">The Future of Sustainable Skyscraper Design</h4>
+<p class="text-xs text-slate-500 mt-1">2 hours ago • 4 min read</p>
+</div>
+</div>
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Heavy construction machinery at worksite" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAVRFJUIcDF8GLaq858WZia_bwBftMNGWvLP3NeRkJJhHvEEyYKOA6CTVny4nnDRvqY-1ifnWuDwEsJhCLHpXl6fRZP6gV4Hly6alvQvqJuly3qWEqkBbrPZWeAKDHsdGg_31pR0LgNC4X1MEjdF9VFvVHbMBUoOZfQkRc6iC08CIuHvt20gfFDdMC4bo3zrEbHcYFx-wyrZuuajUluYfGdDiwamaDYjexzl6JJmGYkGFtRndDRLE-sJ7-GX8iIDCxV6tcs6vQl6vU')"></div>
+<div>
+<h4 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">5 Ways AI is Changing the Construction Industry</h4>
+<p class="text-xs text-slate-500 mt-1">5 hours ago • 6 min read</p>
+</div>
+</div>
+<div class="flex gap-4 group cursor-pointer">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Architectural floor plan blueprint and model" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCX_lxUiMGNzWwwMu3s--CX0J8kU8h2sUcJvYJsKuKx0AWM5DVtXM4ilW6re7Ydp6gv0laG4hClzRKjjfgbA8_5q7Qa-F_pbGnpFjZRkm5QHqKLv0YVQnQmPC6YRBFyTNsOnwXCEblyN6fUL58mVBpDJ8AHULtqUcgY8XotL-_3cYOY-WLSGcddqQ4dCTRq5jDEMSz6jvY3obOXzOWimOXeUHlqkHb8yrd1hM5XJiam6rg-ZDfaPBAdaPhSoH6n6QsWAbsmqxpARDo')"></div>
+<div>
+<h4 class="text-sm font-bold group-hover:text-primary transition-colors line-clamp-2">Urban Planning: Designing for 2030</h4>
+<p class="text-xs text-slate-500 mt-1">Yesterday • 8 min read</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Projects Table -->
+<section class="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-primary/5 overflow-hidden">
+<div class="p-6 border-b border-primary/5 flex items-center justify-between">
+<h3 class="font-bold text-lg">Recent Projects</h3>
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+<button class="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-700 shadow-sm rounded-md">All</button>
+<button class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-primary transition-colors">Active</button>
+<button class="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-primary transition-colors">Archived</button>
+</div>
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">filter_list</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+<tr>
+<th class="px-6 py-4">Project Name</th>
+<th class="px-6 py-4">Location</th>
+<th class="px-6 py-4">Start Date</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Budget Progress</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-cover bg-center shrink-0" data-alt="Modern residential luxury building project" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4eg1meKzVtWklnicIbUoqaBdVYw_z10r4anDqE593fVIrUB0jCwni98TBg00VkbfgmvYJAbdEoebhWX3roD-6GYkbQVfqhTPh9bRsXgRVJ0oOSKLHTZAjlwfiyV8lziwOE6QRAAMlfq0z3bGhHCj8GMiHdnr3bLact51z1ewX5PUwQwTvFs2uLiDsoFrmc-rSCNlb2cmpZISg9yJ2XvbpQQ4nemydbEADKLIVbddyo_T5tyhLbvwrTB6AkK5ZhoWhFoir1JEnf7s')"></div>
+<span class="font-bold text-sm">Oak Ridge Residences</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Austin, TX</td>
+<td class="px-6 py-4 text-sm text-slate-500">Jan 12, 2024</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">In Progress</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 max-w-[120px]">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-cover bg-center shrink-0" data-alt="Sleek corporate office interior design" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2bJGzNuV_0XBz1Xpri36J90P8N7gsLulk8l-tBWF0pK6gJmF0zrbdpvHAt3STam8sK8ce6PwW1QSRB8etPkvTMCi8DaoUF23bJn7cz7jRr8eHadtsi6BwfWty2t-TYXGkwkqhUjvh9Xkpo1YT7RR7rk_Wv-wUunpMQWaAcgcDl5QwcEem78ygaOFIErW_w1Y_lxGiPUrSm-DNUzhuuuK1zbezjWl3Z790fTpdQEBBmLHkdkcqLwOTU82ht8zvX5Sr4lDqTp12vf0')"></div>
+<span class="font-bold text-sm">Skyline Corporate Hub</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Denver, CO</td>
+<td class="px-6 py-4 text-sm text-slate-500">Nov 04, 2023</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-green-500/10 text-green-500 rounded-full">Completed</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 max-w-[120px]">
+<div class="bg-green-500 h-1.5 rounded-full" style="width: 100%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-cover bg-center shrink-0" data-alt="Modern geometric white house architecture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBivqBY88wsLFwyPfMHaH3O2xShsGGeegWeGZu6msU1jMaGRNUp7YZcaWXVlrVudSpKE1MGN7Ji9NvWRRkJvmBh3p9AVP7s2RH4IiBd-zzaJsH_lmcqnVfVY4JiiplFs0Dh4inJi3Ry78eH8N-l1ZtTmagaeE-9dhiCa6z9v9vtzgurFbxhwyewbrg_uI70cVci02b8_eIclbKZLqwEFKUoa7jANg-06TyfnGSj0n_rvInVwq5erUVXAmvDUV0qxm1VvO2LA4Fwu_o')"></div>
+<span class="font-bold text-sm">Harbor View Villas</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">Miami, FL</td>
+<td class="px-6 py-4 text-sm text-slate-500">Feb 28, 2024</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-full">In Progress</span>
+</td>
+<td class="px-6 py-4">
+<div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 max-w-[120px]">
+<div class="bg-primary h-1.5 rounded-full" style="width: 20%"></div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

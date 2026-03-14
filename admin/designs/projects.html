@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BuildFlow CMS - Project Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d9488", // Teal 600
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#181121",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between border-b border-primary/10 bg-white dark:bg-background-dark px-6 md:px-20 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">BuildFlow CMS</h2>
+</div>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Projects</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Teams</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Reports</a>
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary transition-colors" href="#">Inventory</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-4 items-center">
+<div class="hidden md:flex items-center bg-primary/5 dark:bg-primary/10 rounded-full px-4 py-2 w-full max-w-xs border border-primary/10">
+<span class="material-symbols-outlined text-primary text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Search across CMS..." type="text"/>
+</div>
+<button class="p-2 text-slate-500 hover:bg-primary/10 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar of a construction manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAHswoszNzXqzmEWOoXdZvM7yIOQSfO7NtoKYX-_KwkCwe-vmM0Rg1QlBrTJ-MvMihWZHOqEc-U6ZuGo42LYS9NoO_tdykEIkMON6JDsYKO3Sfl8m0DhKRNh0b10k59Nhc9kj4gdc0ovWFO-WA-_mRu2wF6CY70F9oePUGfD-oQdsd3joHm-B0jKSQ63zG9qyoDfa4K4XhkdMKsgJcmZ5B7_nvhnEqKRappwm_h_1nVOXgS2mAsegu0SaSNBE3Xft0Ia6UMADa4_Q"/>
+</div>
+</div>
+</header>
+<main class="flex-1 px-6 md:px-20 py-8">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div>
+<h1 class="text-4xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">Real Estate Projects</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-2 text-lg">Oversee, track, and manage your global construction portfolio</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+<span>New Project</span>
+</button>
+</div>
+<div class="bg-white dark:bg-background-dark/50 border border-primary/10 rounded-2xl p-4 mb-8 shadow-sm">
+<div class="flex flex-col lg:flex-row gap-4">
+<div class="flex-1 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-background-light dark:bg-background-dark border-none rounded-xl focus:ring-2 focus:ring-primary/50 text-sm" placeholder="Search by project name, location or ID..." type="text"/>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl text-sm font-semibold">
+<span>All Projects</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 bg-background-light dark:bg-background-dark text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">event_upcoming</span>
+<span>Planning</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 bg-background-light dark:bg-background-dark text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">construction</span>
+<span>Active</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-3 bg-background-light dark:bg-background-dark text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+<span>Completed</span>
+</button>
+<div class="h-10 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden lg:block"></div>
+<button class="flex items-center gap-2 px-4 py-3 bg-background-light dark:bg-background-dark text-slate-600 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-primary/10 transition-colors border border-dashed border-primary/30">
+<span class="material-symbols-outlined text-xl">filter_list</span>
+<span>More Filters</span>
+</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="group bg-white dark:bg-background-dark/40 border border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<span class="px-3 py-1 rounded-full bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">Under Construction</span>
+</div>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Modern glass skyscraper architecture downtown" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnCpJL9VlTHQLY1UGLkpHxE7G_g8ghoSvHT81jxkjAlFnhbYCxpY1kmaP8pj91HGm7gwQGC7ALaSDRUaWDm-e6y1TtVrDolTZqQWf83oT_HSNSPfWZnxoFSrjHn0Q1DkZ4bobuJNLgLPlqsmM5rOBX_t7QhOtPvFtPpGTjlphlN5NTs3s3nlCaiYIRMC0m5Wup049hA6k8BIB6DpEjUHkpHpoAxpkfABxNuJ76_fEyDMLd7woBD304WO_9c-umloTCHYoJ7tkKtHk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white/20 backdrop-blur-md text-white rounded-lg font-bold text-sm border border-white/30">View Details</button>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">Oakwood Residency</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-6">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span data-location="Chicago">Downtown, Metropolis</span>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium text-slate-600 dark:text-slate-400">Construction Progress</span>
+<span class="font-bold text-primary">65%</span>
+</div>
+<div class="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 65%"></div>
+</div>
+<div class="flex justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a construction worker" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDq2jRWDxnsLmNPIyIzBZBXF3r8miRqKDYu0CCTS7wHzSC1FwzI5AECPZR8GhWNzWAjw5sv5KJFTlFxie9DdunEBiItZvs44yQmOqMsITwTEJ9FU0N9Snuh70pPCynXsADtYHtKayLK2bYkex5nOLzx3vlA01dcAtS5f25NFJNjFnC9rDypywTN1h_PP6gjTTXjKYgBxgF5u7_H3VhrtNpuazW1oFrc4XsshdCKPgYBxgUf6WwLpMoqTVfDXLHfMgXZpRhCezYtIa4"/>
+</div>
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of an architect" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCne_6_hGovUJ1cud62SJPhAbrejeXoeGfj8GsqWicbHPcY1_o5hDSI0UpSfWUDxLx6tKXjRajW6jCS1c7iTIE_iO3x4lqzR_IspRT9CCwjgGePntS8z-3jx-kW3YQWnlOwaBB7EDuCk_55TA_6hmZBAQKJqF-qVM_38w-sAF2a4el7OTKbV47h0GiDj23s2RrSyU8khd3UmePu55CmBb576ktJbPH6M4HA8a4aP_KcY1OWnjQNPh_mq-IoViDimQJBU2fvYRa-kKE"/>
+</div>
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-primary flex items-center justify-center text-[10px] text-white font-bold">+4</div>
+</div>
+<div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span>
+<span>Est. Oct 2024</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-background-dark/40 border border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<span class="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">Planning</span>
+</div>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Abstract architectural concept sketch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyVFXfakENwX9potmAzmZ1IB2_AJm3jb_AFzOMMKCIHuvSgqkquONdioGZ1UA5LsCxyC4oMfCyNCP0_YHwF98-2cb0F4YVhB2tTpTW29rw1uPGj0iavccZQctVPbmmBT0sRw99T50Rd3D0i712j4EyaHQHXVICgwA-krg5F35f5dVgVSUAIeN9Ekcw1_c4td4pwV2tiU9RVb0MlGwAm-NIMCSSJ_c0GZcAd7UBBlUEqV-k0mdR9GqysA57QT2fWAMjryTBY0soetk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white/20 backdrop-blur-md text-white rounded-lg font-bold text-sm border border-white/30">View Details</button>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">Skyline Tower</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-6">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span data-location="London">Financial District, Capital City</span>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium text-slate-600 dark:text-slate-400">Design Approval</span>
+<span class="font-bold text-primary">15%</span>
+</div>
+<div class="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 15%"></div>
+</div>
+<div class="flex justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Team member profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJnvFS5t4s1-RqlB9PoxoNESlhXq0GKBhOHemqeIiP4R05QMQk-wNHjf-HKGgfccjy4T6RAGWlEW1rSglQ_KIkmZmjKQzOYDEjSyEH06LMAjW5b4UNf_7Qpfqnp1uLMLw80yVt-XRfM5XiRYYTiB8twrVQSSMQfe1MiBifoKKw04MsXA23QfvoiyXPhL38aTzFlQV__Xm9LyuVwQ-SGH4-FBY2NxbOpqYmUjG5Rwwz_8SeZuAGfsuEdaRmCnqrzKnbOX4H-k1TSB4"/>
+</div>
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-primary flex items-center justify-center text-[10px] text-white font-bold">+2</div>
+</div>
+<div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span>
+<span>Est. Jan 2026</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-background-dark/40 border border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<span class="px-3 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">Completed</span>
+</div>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Luxury apartment complex exterior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA362ZyLV-lLsESdS2svN6s8JrOcE1gI3VrxpuP8COQptJodoVAiT-xD2r7miZcPAZTSFjaxvZQsjf3sy0ji2MvouhofqhgOQMZA5di5Te_0p_L1v88gHYkV3AewFALwJBLuVCpML7c-8CM6Gu3-AgccJfTceBlq0AehkSZkh4Rgy_F_B1-WrpJ7GgadLIkwJYIwzSHrYOGs5_LzuX3ySFt3BoSwJFkyEERenYcuVXWrHCTXCCTKTG-1tBZIaqxu2FNJFDMj_F25DI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white/20 backdrop-blur-md text-white rounded-lg font-bold text-sm border border-white/30">View Portfolio</button>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">Maplewood Estates</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-6">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span data-location="Vancouver">Green Valley, Suburbs</span>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium text-slate-600 dark:text-slate-400">Project Completion</span>
+<span class="font-bold text-emerald-500">100%</span>
+</div>
+<div class="w-full h-2 bg-emerald-500/10 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+</div>
+<div class="flex justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Construction manager portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGoosxFfzdYrJfdRAiOYlsM4H366TjMxfFQWvNXs4HUOxY0ULMwApRvRBAvTjkz89xbgQi5_RdF7kIz-hI95ftC_ZwvWdnXb8e9_IQn3uYGBND2vqbGlv_oJckzezgcj8WXq-M6IaMg0yTEX9vf3a-wA_-5a2lqTlTR4Di5WtSTR9bEWGTiB5rYet0TbG6vNdnadJ6kr1uEDhShrzyGWyaC7-7nnJYqCCt9E6WytfRCM48pqfMmEp5dbm96mBJsrjgBu0R6qkPUgE"/>
+</div>
+</div>
+<div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">verified</span>
+<span>Delivered June 2023</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="group bg-white dark:bg-background-dark/40 border border-primary/10 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+<div class="relative h-56 overflow-hidden">
+<div class="absolute top-4 left-4 z-10">
+<span class="px-3 py-1 rounded-full bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg">Under Construction</span>
+</div>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Harbor side residential development under construction" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB49I_N2p5l_STiiw3-1FhJj3DaRmpMUGQ1ezN3vTIxA4cr7mEK6mSLyNUAt0YBNR2MNgpJ7q3d-Yl9mPhE5VuYnQZPDBIAUHGtmAJ_GSOeCSTS4k-l4SKA1JROTx82mxrVFyiO7FTkHr8IVJofn-upTjcFfPochjO-AS2mP5mCdlsrq191MT3zYXUukokWTN9W9-TKAvdBalboI9XnZsCvOx75tfLJOHQ0CxMaD6bcaURbgIyZ_pDiDzGRfbytXoXfFRsSaOAEwkk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+<button class="w-full py-2 bg-white/20 backdrop-blur-md text-white rounded-lg font-bold text-sm border border-white/30">View Details</button>
+</div>
+</div>
+<div class="p-5 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-primary transition-colors">Harbor View Ph II</h3>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-6">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span data-location="Miami">Coastal Road, Seaview</span>
+</div>
+<div class="mt-auto">
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium text-slate-600 dark:text-slate-400">Construction Progress</span>
+<span class="font-bold text-primary">42%</span>
+</div>
+<div class="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 42%"></div>
+</div>
+<div class="flex justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-slate-200 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Project leader profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_dQmQOUNHfwdeOKWgt0NHmjGRELwU7TRB1LLgEWwJhTXxWIvadt0jD3oz_oVxV2Wq9HJOwAf0ypwbAo4mUMFRHDM88x_zb_n04H9E9M_fJu-b9V1scZbuXAW3bLafEh_FmSDzJjFzdVTzGwfjzu1LuzegO4CH8dFuOnkViD8Xg-pTzKpv7lQU-R4w_ZR2Wtn2w5TLLsEc85TFQWsppBWSroumxc7u-dAwh72xTtIuhlewkNT9b24V-XT-QR2uUNRRruFjYHcJwkM"/>
+</div>
+<div class="size-8 rounded-full border-2 border-white dark:border-background-dark bg-primary flex items-center justify-center text-[10px] text-white font-bold">+8</div>
+</div>
+<div class="text-[10px] text-slate-400 uppercase font-bold tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span>
+<span>Est. Feb 2025</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white dark:bg-background-dark border-t border-primary/10 px-6 md:px-20 py-6 mt-auto">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-xs font-semibold uppercase tracking-widest">
+<div class="flex items-center gap-4">
+<span>© 2024 BuildFlow CMS</span>
+<span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+<span>System Status: Optimal</span>
+</div>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

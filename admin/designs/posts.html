@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Article Management | EstateCMS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d9488",
+                        "background-light": "#f7f6f8",
+                        "background-dark": "#0f1717",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<div class="flex h-full grow flex-col">
+<!-- Header/Navigation -->
+<header class="flex items-center justify-between border-b border-primary/10 bg-white dark:bg-background-dark px-6 md:px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">domain</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">EstateCMS</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6">
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-primary text-sm font-semibold leading-normal border-b-2 border-primary pb-1" href="#">Articles</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Properties</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Leads</a>
+<a class="text-slate-600 dark:text-slate-400 text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Settings</a>
+</nav>
+<div class="flex gap-2 border-l border-primary/10 pl-6">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Professional headshot of a male real estate manager" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuARFOoR-TYamwiaZ2PQT7lyeFQAxN6nc9KBdwXLw0fOeXEQrIZlAJFfrtWev5Oj4JP_wLBn4nOn5suQLu9HIG9tBlNOGe21i1Gh8jJfBJ2SgrZcsM_dNQ1EEvwVPUXFoYzCNb6BY2kSEjAemGNylxN_wraeLsWV9si3BzaR22lX1k-8TICLx8Ze95x3nz_GovZ1lAjn4v0Wrx-KquJEQCwznGe1Y2gcBRhX8gVSJf_MmbwBf6bRgy9kpyqcO3BrVht2s78MD4YPQC4");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-8">
+<div class="layout-content-container flex flex-col w-full max-w-[1200px] px-6">
+<!-- Page Title & CTA -->
+<div class="flex flex-wrap items-end justify-between gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold leading-tight tracking-tight">Article Management</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Create, edit, and organize your real estate content portfolio.</p>
+</div>
+<button class="flex items-center justify-center gap-2 rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Create New Article</span>
+</button>
+</div>
+<!-- Filters & Search -->
+<div class="flex flex-col gap-6 bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-primary/10 mb-8 shadow-sm">
+<div class="w-full">
+<label class="flex flex-col h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-background-light dark:bg-background-dark border border-primary/5 focus-within:border-primary/30 transition-all">
+<div class="text-primary/60 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent focus:ring-0 h-full placeholder:text-slate-400 text-slate-700 dark:text-slate-200 px-4 text-base font-normal" placeholder="Search articles by title, author, or keywords..."/>
+</div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Filter by Category:</span>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary text-white px-5 cursor-pointer text-sm font-semibold">
+                                All Articles
+                            </div>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 text-primary px-5 cursor-pointer text-sm font-medium hover:bg-primary/20 transition-all">
+                                Market News
+                            </div>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 text-primary px-5 cursor-pointer text-sm font-medium hover:bg-primary/20 transition-all">
+                                Interior
+                            </div>
+<div class="flex h-9 items-center justify-center gap-x-2 rounded-full bg-primary/10 text-primary px-5 cursor-pointer text-sm font-medium hover:bg-primary/20 transition-all">
+                                Construction Progress
+                            </div>
+<button class="ml-auto text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                                Advanced Filters
+                            </button>
+</div>
+</div>
+<!-- Table Container -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-primary/10 shadow-sm overflow-hidden @container">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-primary/10">
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider">Title</th>
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider">Category</th>
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider">Author</th>
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-slate-700 dark:text-slate-300 text-sm font-bold uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-semibold text-sm">Urban Market Trends 2024</span>
+<span class="text-xs text-slate-400">slug: /market-trends-2024</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center rounded-md bg-teal-50 dark:bg-teal-900/20 px-2 py-1 text-xs font-bold text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800">
+                                                Market News
+                                            </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">SJ</div>
+<span class="text-slate-600 dark:text-slate-400 text-sm">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400 text-sm">Oct 12, 2023</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                                Published
+                                            </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-semibold text-sm">Top 10 Minimalist Interiors</span>
+<span class="text-xs text-slate-400">slug: /minimalist-interiors</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center rounded-md bg-teal-50 dark:bg-teal-900/20 px-2 py-1 text-xs font-bold text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800">
+                                                Interior
+                                            </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">MC</div>
+<span class="text-slate-600 dark:text-slate-400 text-sm">Michael Chen</span>
+</div>
+</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400 text-sm">Oct 15, 2023</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold text-slate-600 dark:text-slate-400">
+<span class="size-1.5 rounded-full bg-slate-400"></span>
+                                                Draft
+                                            </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-semibold text-sm">Skyline Tower Progress Update</span>
+<span class="text-xs text-slate-400">slug: /skyline-progress-oct</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center rounded-md bg-teal-50 dark:bg-teal-900/20 px-2 py-1 text-xs font-bold text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800">
+                                                Construction
+                                            </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">CT</div>
+<span class="text-slate-600 dark:text-slate-400 text-sm">Construction Team</span>
+</div>
+</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400 text-sm">Oct 18, 2023</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                                Published
+                                            </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-semibold text-sm">Mortgage Rate Analysis</span>
+<span class="text-xs text-slate-400">slug: /mortgage-analysis</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center rounded-md bg-teal-50 dark:bg-teal-900/20 px-2 py-1 text-xs font-bold text-teal-700 dark:text-teal-300 border border-teal-100 dark:border-teal-800">
+                                                Market News
+                                            </span>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">SJ</div>
+<span class="text-slate-600 dark:text-slate-400 text-sm">Sarah Jenkins</span>
+</div>
+</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400 text-sm">Oct 20, 2023</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                                Published
+                                            </span>
+</td>
+<td class="px-6 py-5 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+<button class="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-between px-6 py-4 border-t border-primary/10 bg-slate-50 dark:bg-slate-800/50">
+<span class="text-sm text-slate-500 dark:text-slate-400">Showing 1 to 4 of 24 articles</span>
+<div class="flex gap-2">
+<button class="flex items-center justify-center size-9 rounded-lg border border-primary/20 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="flex items-center justify-center size-9 rounded-lg bg-primary text-white font-bold text-sm">1</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-primary/20 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">2</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-primary/20 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">3</button>
+<button class="flex items-center justify-center size-9 rounded-lg border border-primary/20 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
