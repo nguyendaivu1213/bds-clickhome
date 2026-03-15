@@ -9,9 +9,32 @@ use Illuminate\Http\JsonResponse;
 
 class FolderController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $folders = Folder::whereNull('parent_id')->with('children')->get();
+        if ($request->get('view') === 'tree') {
+            $folders = Folder::whereNull('parent_id')
+                ->with(['children' => function($query) {
+                    $query->withCount(['children', 'media']);
+                }])
+                ->withCount(['children', 'media'])
+                ->get();
+            return response()->json($folders);
+        }
+
+        $query = Folder::query();
+        
+        if ($request->has('parent_id')) {
+            if ($request->parent_id == 0) {
+                $query->whereNull('parent_id');
+            } else {
+                $query->where('parent_id', $request->parent_id);
+            }
+        } else {
+            // Default to root level if no parent_id is specified
+            $query->whereNull('parent_id');
+        }
+
+        $folders = $query->withCount(['children', 'media'])->get();
         return response()->json($folders);
     }
 

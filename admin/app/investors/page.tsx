@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 
+import Link from 'next/link';
+
 // --- Config ---
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1/admin';
 
@@ -20,15 +22,6 @@ interface Investor {
 
 interface ApiMeta { current_page: number; last_page: number; total: number; }
 
-const EMPTY_FORM = {
-  name: '',
-  subdomain: '',
-  website_link: '',
-  logo: '',
-  status: 'active' as 'active' | 'inactive',
-  short_description: '',
-};
-
 // --- API helpers ---
 async function apiFetch(path: string, opts: RequestInit = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -36,13 +29,12 @@ async function apiFetch(path: string, opts: RequestInit = {}) {
     ...opts,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw data; // ném để bắt lỗi validation
+  if (!res.ok) throw data; 
   return data;
 }
 
 // --- Normalise API response → Investor shape ---
 function normalise(raw: any): Investor {
-  // Astrotomic trả name flatten hoặc qua translations array
   const viTrans = raw.translations?.find((t: any) => t.locale === 'vi') ?? raw.translations?.[0];
   return {
     id:               raw.id,
@@ -60,123 +52,6 @@ function normalise(raw: any): Investor {
 // --- Helper ---
 function avatarUrl(name: string) {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0d9488&color=fff&size=128&bold=true`;
-}
-
-// --- Modal Add/Edit ---
-function InvestorModal({
-  mode, investor, onClose, onSaved,
-}: {
-  mode: 'add' | 'edit';
-  investor: typeof EMPTY_FORM & { id?: number };
-  onClose: () => void;
-  onSaved: (inv: Investor) => void;
-}) {
-  const [form, setForm] = useState(investor);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({});
-    try {
-      const payload = {
-        name:              form.name,
-        subdomain:         form.subdomain,
-        website_link:      form.website_link || null,
-        logo:              form.logo || null,
-        status:            form.status,
-        short_description: form.short_description || null,
-      };
-      let raw: any;
-      if (mode === 'add') {
-        raw = await apiFetch('/investors', { method: 'POST', body: JSON.stringify(payload) });
-      } else {
-        raw = await apiFetch(`/investors/${form.id}`, { method: 'PUT', body: JSON.stringify(payload) });
-      }
-      onSaved(normalise(raw));
-    } catch (err: any) {
-      // Laravel validation errors: { errors: { field: ['msg'] } }
-      if (err?.errors) {
-        const flat: Record<string, string> = {};
-        Object.entries(err.errors).forEach(([k, v]) => { flat[k] = (v as string[])[0]; });
-        setErrors(flat);
-      } else {
-        setErrors({ _global: err?.message ?? 'Lỗi không xác định.' });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const field = (label: string, key: keyof typeof EMPTY_FORM, placeholder: string, hint?: string) => (
-    <div>
-      <label className="block text-sm font-semibold text-slate-700 mb-1.5">{label}</label>
-      <input
-        className={`w-full px-4 py-2.5 border rounded-xl text-sm outline-none transition focus:ring-2 focus:ring-primary/30 focus:border-primary ${errors[key] ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'}`}
-        placeholder={placeholder}
-        value={(form as any)[key] ?? ''}
-        onChange={ev => { setForm({ ...form, [key]: ev.target.value }); setErrors({ ...errors, [key]: '' }); }}
-      />
-      {errors[key] && <p className="text-xs text-red-500 mt-1">{errors[key]}</p>}
-      {hint && !errors[key] && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
-    </div>
-  );
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary text-xl">{mode === 'add' ? 'add_business' : 'edit'}</span>
-            </div>
-            <h2 className="text-lg font-bold text-slate-800">{mode === 'add' ? 'Thêm Chủ Đầu Tư' : 'Chỉnh Sửa Chủ Đầu Tư'}</h2>
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition hover:bg-slate-100 rounded-lg p-1.5">
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {errors._global && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">{errors._global}</div>
-          )}
-          {field('Tên chủ đầu tư *', 'name', 'Vd: Tập Đoàn Hưng Thịnh')}
-          {field('Subdomain *', 'subdomain', 'Vd: hung-thinh', 'Chữ thường, không dấu, dùng dấu gạch ngang')}
-          {field('Website', 'website_link', 'https://example.com')}
-          {field('Mô tả ngắn', 'short_description', 'Giới thiệu ngắn về chủ đầu tư...')}
-          {field('URL Logo', 'logo', 'https://...', 'Để trống để dùng avatar tự động')}
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Trạng thái</label>
-            <div className="flex gap-3">
-              {(['active', 'inactive'] as const).map(s => (
-                <label key={s} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border cursor-pointer transition text-sm font-medium ${form.status === s ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}>
-                  <input type="radio" className="hidden" value={s} checked={form.status === s} onChange={() => setForm({ ...form, status: s })} />
-                  <span className={`size-2 rounded-full ${s === 'active' ? 'bg-emerald-500' : 'bg-red-400'}`}></span>
-                  {s === 'active' ? 'Hoạt Động' : 'Tạm Ngưng'}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition text-sm">
-              Hủy
-            </button>
-            <button type="submit" disabled={loading} className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary-dark transition text-sm flex items-center justify-center gap-2 disabled:opacity-60">
-              {loading ? (
-                <><span className="size-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></span> Đang lưu...</>
-              ) : (
-                <><span className="material-symbols-outlined text-base">{mode === 'add' ? 'add' : 'save'}</span>{mode === 'add' ? 'Thêm mới' : 'Lưu thay đổi'}</>
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
 }
 
 // --- Delete Confirm ---
@@ -253,7 +128,6 @@ export default function InvestorsPage() {
 
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
-  const [modal, setModal] = useState<{ mode: 'add' | 'edit'; data: typeof EMPTY_FORM & { id?: number } } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Investor | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -270,7 +144,6 @@ export default function InvestorsPage() {
       if (search) params.set('search', search);
       if (filterStatus !== 'all') params.set('status', filterStatus);
       const data = await apiFetch(`/investors?${params}`);
-      // Laravel pagination: { data: [], meta: {} } hoặc { data: [], current_page, ... }
       const items = data.data ?? data;
       setInvestors((Array.isArray(items) ? items : []).map(normalise));
       setMeta(data.meta ?? { current_page: 1, last_page: 1, total: items.length });
@@ -286,17 +159,7 @@ export default function InvestorsPage() {
     return () => clearTimeout(t);
   }, [fetchInvestors]);
 
-  // Client-side filter (khi API đã trả về đủ)
   const filtered = useMemo(() => investors, [investors]);
-
-  const handleSaved = (inv: Investor) => {
-    setInvestors(prev => {
-      const exists = prev.find(i => i.id === inv.id);
-      return exists ? prev.map(i => (i.id === inv.id ? inv : i)) : [inv, ...prev];
-    });
-    setModal(null);
-    showToast(modal?.mode === 'add' ? 'Thêm chủ đầu tư thành công!' : 'Cập nhật thành công!');
-  };
 
   const handleDeleted = () => {
     if (!deleteTarget) return;
@@ -313,13 +176,13 @@ export default function InvestorsPage() {
           <h1 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">Chủ Đầu Tư</h1>
           <p className="text-slate-500 mt-1 text-base">Quản lý các đối tác cung cấp, phát triển và chủ sở hữu bất động sản.</p>
         </div>
-        <button
-          onClick={() => setModal({ mode: 'add', data: { ...EMPTY_FORM } })}
+        <Link
+          href="/investors/create"
           className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 w-full sm:w-auto"
         >
           <span className="material-symbols-outlined">add</span>
           <span>Thêm Chủ Đầu Tư</span>
-        </button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -414,12 +277,12 @@ export default function InvestorsPage() {
                 </div>
               </div>
               <div className="border-t border-slate-100 grid grid-cols-2 divide-x divide-slate-100">
-                <button
-                  onClick={() => setModal({ mode: 'edit', data: { id: investor.id, name: investor.name, subdomain: investor.subdomain, website_link: investor.website_link ?? '', logo: investor.logo ?? '', status: investor.status, short_description: investor.short_description ?? '' } })}
+                <Link
+                  href={`/investors/update/${investor.id}`}
                   className="flex items-center justify-center gap-1.5 py-3 text-slate-500 hover:bg-primary/5 hover:text-primary transition text-xs font-semibold"
                 >
                   <span className="material-symbols-outlined text-sm">edit</span>Chỉnh sửa
-                </button>
+                </Link>
                 <button
                   onClick={() => setDeleteTarget(investor)}
                   className="flex items-center justify-center gap-1.5 py-3 text-slate-500 hover:bg-red-50 hover:text-red-500 transition text-xs font-semibold"
@@ -432,9 +295,6 @@ export default function InvestorsPage() {
         </div>
       )}
 
-      {modal && (
-        <InvestorModal mode={modal.mode} investor={modal.data} onClose={() => setModal(null)} onSaved={handleSaved} />
-      )}
       {deleteTarget && (
         <DeleteConfirm investor={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDeleted} />
       )}

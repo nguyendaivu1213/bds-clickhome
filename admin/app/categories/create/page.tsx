@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import MediaPicker from '@/app/components/MediaPicker';
+import { slugify } from '@/app/lib/utils';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1/admin';
 
@@ -126,7 +127,7 @@ export default function CreateCategoryPage() {
     }
   };
 
-  const field = (label: string, key: keyof typeof form, placeholder: string, type = 'text', hint?: string) => (
+  const field = (label: string, key: keyof typeof form, placeholder: string, type = 'text', hint?: string, extraOnChange?: (val: string) => void) => (
     <div className="flex flex-col gap-1.5">
       <label className="text-sm font-bold text-slate-700">{label}</label>
       {type === 'textarea' ? (
@@ -134,7 +135,12 @@ export default function CreateCategoryPage() {
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
           value={(form as any)[key]}
-          onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
+          onChange={e => { 
+            const val = e.target.value;
+            setForm(prev => ({ ...prev, [key]: val })); 
+            setErrors(prev => ({ ...prev, [key]: '' }));
+            if (extraOnChange) extraOnChange(val);
+          }}
         />
       ) : (
         <input
@@ -142,7 +148,12 @@ export default function CreateCategoryPage() {
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
           value={(form as any)[key]}
-          onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
+          onChange={e => { 
+            const val = e.target.value;
+            setForm(prev => ({ ...prev, [key]: val })); 
+            setErrors(prev => ({ ...prev, [key]: '' }));
+            if (extraOnChange) extraOnChange(val);
+          }}
         />
       )}
       {errors[key] && <p className="text-xs text-red-500 font-medium">{errors[key]}</p>}
@@ -172,7 +183,9 @@ export default function CreateCategoryPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="space-y-6">
-            {field('Tên Chuyên Mục *', 'title', 'Vd: Tin Thị Trường')}
+            {field('Tên Chuyên Mục *', 'title', 'Vd: Tin Thị Trường', 'text', undefined, (val) => {
+              setForm(prev => ({ ...prev, url: slugify(val) }));
+            })}
             {field('Đường Dẫn (URL) *', 'url', 'Vd: tin-thi-truong', 'text', 'Viết liền không dấu, dùng dấu gạch ngang phân cách')}
             
             <div className="flex flex-col gap-1.5">
@@ -217,73 +230,6 @@ export default function CreateCategoryPage() {
               </div>
             </div>
 
-            {/* Images Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm text-primary">image</span>
-                  Ảnh Menu
-                </label>
-                <div className="flex items-start gap-4">
-                  <div className="size-24 rounded-2xl bg-slate-50 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 transition-all">
-                    {form.menu_image ? (
-                      <img src={form.menu_image} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-300">add_photo_alternate</span>
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col gap-2">
-                    <input 
-                      type="text" 
-                      className="w-full border border-slate-200 rounded-lg h-10 px-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                      placeholder="URL hình ảnh..." 
-                      value={form.menu_image}
-                      onChange={e => setForm({...form, menu_image: e.target.value})}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => { setActiveImageField('menu_image'); setPickerOpen(true); }}
-                      className="w-fit px-4 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all"
-                    >
-                      Chọn từ thư viện
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm text-primary">token</span>
-                  Ảnh Icon
-                </label>
-                <div className="flex items-start gap-4">
-                  <div className="size-24 rounded-2xl bg-slate-50 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 transition-all">
-                    {form.icon_image ? (
-                      <img src={form.icon_image} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="material-symbols-outlined text-slate-300">add_photo_alternate</span>
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col gap-2">
-                    <input 
-                      type="text" 
-                      className="w-full border border-slate-200 rounded-lg h-10 px-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                      placeholder="URL icon..." 
-                      value={form.icon_image}
-                      onChange={e => setForm({...form, icon_image: e.target.value})}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => { setActiveImageField('icon_image'); setPickerOpen(true); }}
-                      className="w-fit px-4 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all"
-                    >
-                      Chọn từ thư viện
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-bold text-slate-700">Vị Trí Hiển Thị</label>
               <select
@@ -299,6 +245,99 @@ export default function CreateCategoryPage() {
             </div>
 
             {field('Mô Tả Ngắn (Tuỳ chọn)', 'description', 'Nhập mô tả cho chuyên mục...', 'textarea')}
+          </div>
+        </div>
+
+        {/* Improved Images Section at the bottom */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-slate-100 mb-8">
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[20px]">image</span>
+              Ảnh Menu
+            </label>
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="size-32 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shrink-0 transition-all hover:bg-slate-100/50">
+                {form.menu_image ? (
+                  <img src={form.menu_image} className="w-full h-full object-cover" alt="Menu" />
+                ) : (
+                  <span className="material-symbols-outlined text-slate-300 text-[40px]">add_photo_alternate</span>
+                )}
+              </div>
+              <div className="flex-1 w-full flex flex-col gap-3">
+                <input 
+                  type="text" 
+                  className="w-full border border-slate-200 rounded-xl h-12 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  placeholder="URL hình ảnh menu..." 
+                  value={form.menu_image}
+                  onChange={e => setForm({...form, menu_image: e.target.value})}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => { setActiveImageField('menu_image'); setPickerOpen(true); }}
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">photo_library</span>
+                    Chọn từ thư viện
+                  </button>
+                  {form.menu_image && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, menu_image: ''})}
+                      className="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">hide_image</span>
+                      Loại bỏ hình
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary text-[20px]">token</span>
+              Ảnh Icon
+            </label>
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="size-32 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shrink-0 transition-all hover:bg-slate-100/50">
+                {form.icon_image ? (
+                  <img src={form.icon_image} className="w-full h-full object-cover" alt="Icon" />
+                ) : (
+                  <span className="material-symbols-outlined text-slate-300 text-[40px]">add_photo_alternate</span>
+                )}
+              </div>
+              <div className="flex-1 w-full flex flex-col gap-3">
+                <input 
+                  type="text" 
+                  className="w-full border border-slate-200 rounded-xl h-12 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+                  placeholder="URL icon cho chuyên mục..." 
+                  value={form.icon_image}
+                  onChange={e => setForm({...form, icon_image: e.target.value})}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => { setActiveImageField('icon_image'); setPickerOpen(true); }}
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">photo_library</span>
+                    Chọn từ thư viện
+                  </button>
+                  {form.icon_image && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, icon_image: ''})}
+                      className="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">hide_image</span>
+                      Loại bỏ hình
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\InvestorController as AdminInvestorController
 use App\Http\Controllers\Api\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Api\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Api\Admin\FolderController as AdminFolderController;
+use App\Http\Controllers\Api\Admin\ProjectZoneController as AdminProjectZoneController;
 
 use App\Http\Controllers\Api\Frontend\HomeController;
 use App\Http\Controllers\Api\Frontend\ProjectController;
@@ -28,6 +29,7 @@ Route::prefix('v1/admin')->group(function () {
     Route::post('settings', [AdminSettingController::class, 'store']);
     Route::apiResource('media', AdminMediaController::class);
     Route::apiResource('folders', AdminFolderController::class);
+    Route::apiResource('zones', AdminProjectZoneController::class);
 });
 
 Route::prefix('v1/public')->group(function () {

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import MediaPicker from '@/app/components/MediaPicker';
+import { slugify } from '@/app/lib/utils';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1/admin';
 
@@ -156,7 +157,7 @@ export default function UpdateCategoryPage() {
     }
   };
 
-  const field = (label: string, key: keyof typeof form, placeholder: string, type = 'text', hint?: string) => (
+  const field = (label: string, key: keyof typeof form, placeholder: string, type = 'text', hint?: string, extraOnChange?: (val: string) => void) => (
     <div className="flex flex-col gap-1.5">
       <label className="text-sm font-bold text-slate-700">{label}</label>
       {type === 'textarea' ? (
@@ -164,7 +165,12 @@ export default function UpdateCategoryPage() {
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
           value={(form as any)[key]}
-          onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
+          onChange={e => { 
+            const val = e.target.value;
+            setForm(prev => ({ ...prev, [key]: val })); 
+            setErrors(prev => ({ ...prev, [key]: '' }));
+            if (extraOnChange) extraOnChange(val);
+          }}
         />
       ) : (
         <input
@@ -172,7 +178,12 @@ export default function UpdateCategoryPage() {
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
           value={(form as any)[key]}
-          onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
+          onChange={e => { 
+            const val = e.target.value;
+            setForm(prev => ({ ...prev, [key]: val })); 
+            setErrors(prev => ({ ...prev, [key]: '' }));
+            if (extraOnChange) extraOnChange(val);
+          }}
         />
       )}
       {errors[key] && <p className="text-xs text-red-500 font-medium">{errors[key]}</p>}
@@ -213,7 +224,9 @@ export default function UpdateCategoryPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="space-y-6">
-            {field('Tên Chuyên Mục *', 'title', 'Vd: Tin Thị Trường')}
+            {field('Tên Chuyên Mục *', 'title', 'Vd: Tin Thị Trường', 'text', undefined, (val) => {
+              setForm(prev => ({ ...prev, url: slugify(val) }));
+            })}
             {field('Đường Dẫn (URL) *', 'url', 'Vd: tin-thi-truong', 'text', 'Viết liền không dấu, dùng dấu gạch ngang phân cách')}
             
             <div className="flex flex-col gap-1.5">
@@ -300,14 +313,26 @@ export default function UpdateCategoryPage() {
                   value={form.menu_image}
                   onChange={e => setForm({...form, menu_image: e.target.value})}
                 />
-                <button 
-                  type="button"
-                  onClick={() => { setActiveImageField('menu_image'); setPickerOpen(true); }}
-                  className="w-fit px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[20px]">photo_library</span>
-                  Chọn từ thư viện
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => { setActiveImageField('menu_image'); setPickerOpen(true); }}
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">photo_library</span>
+                    Chọn từ thư viện
+                  </button>
+                  {form.menu_image && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, menu_image: ''})}
+                      className="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">hide_image</span>
+                      Loại bỏ hình
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -333,14 +358,26 @@ export default function UpdateCategoryPage() {
                   value={form.icon_image}
                   onChange={e => setForm({...form, icon_image: e.target.value})}
                 />
-                <button 
-                  type="button"
-                  onClick={() => { setActiveImageField('icon_image'); setPickerOpen(true); }}
-                  className="w-fit px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-[20px]">photo_library</span>
-                  Chọn từ thư viện
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => { setActiveImageField('icon_image'); setPickerOpen(true); }}
+                    className="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">photo_library</span>
+                    Chọn từ thư viện
+                  </button>
+                  {form.icon_image && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({...form, icon_image: ''})}
+                      className="px-4 py-2.5 bg-red-50 text-red-500 rounded-xl text-sm font-bold hover:bg-red-100 transition-all flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">hide_image</span>
+                      Loại bỏ hình
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
