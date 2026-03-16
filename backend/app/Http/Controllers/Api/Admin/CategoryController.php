@@ -50,6 +50,7 @@ class CategoryController extends Controller
         ]);
 
         $category = Category::create([
+            'site_id'          => 1,
             'parent_id'        => $validated['parent_id'] ?? null,
             'data_type'        => $validated['data_type'] ?? null,
             'display_position' => $validated['display_position'] ?? null,
@@ -108,7 +109,7 @@ class CategoryController extends Controller
                 'menu_image'       => $validated['menu_image'] ?? null,
                 'icon_image'       => $validated['icon_image'] ?? null,
             ], fn($v) => $v !== null),
-            ['updated_by' => auth()->id()]
+            ['updated_by' => auth()->id(), 'site_id' => 1]
         ));
 
         if (array_key_exists('title', $validated)) {

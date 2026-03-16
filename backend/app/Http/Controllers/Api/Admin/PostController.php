@@ -17,7 +17,9 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
-        $post = \App\Models\Post::create($request->all());
+        $data = $request->all();
+        $data['site_id'] = 1;
+        $post = \App\Models\Post::create($data);
         return response()->json($post, 201);
     }
 
