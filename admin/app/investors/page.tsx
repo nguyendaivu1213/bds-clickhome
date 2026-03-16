@@ -231,7 +231,7 @@ export default function InvestorsPage() {
           <span className="material-symbols-outlined text-amber-500">wifi_off</span>
           <div>
             <p className="font-semibold text-amber-800">{fetchError}</p>
-            <p className="text-sm text-amber-600 mt-1">Đảm bảo Laravel backend đang chạy trên <code className="bg-amber-100 px-1 rounded">http://localhost:8000</code></p>
+            <p className="text-sm text-amber-600 mt-1">Đảm bảo Laravel backend đang chạy trên <code className="bg-amber-100 px-1 rounded">{API_BASE}</code></p>
             <button onClick={fetchInvestors} className="mt-3 text-sm text-amber-700 underline hover:text-amber-900">Thử lại</button>
           </div>
         </div>
