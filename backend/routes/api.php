@@ -20,7 +20,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::prefix('v1/admin')->group(function () {
+Route::prefix('v1/admin')->as('admin.')->group(function () {
     Route::apiResource('projects', AdminProjectController::class);
     Route::apiResource('posts', AdminPostController::class);
     Route::apiResource('categories', AdminCategoryController::class);
@@ -32,7 +32,7 @@ Route::prefix('v1/admin')->group(function () {
     Route::apiResource('zones', AdminProjectZoneController::class);
 });
 
-Route::prefix('v1/public')->group(function () {
+Route::prefix('v1/public')->as('public.')->group(function () {
     Route::get('home', [HomeController::class, 'index']);
     Route::apiResource('projects', ProjectController::class)->only(['index', 'show']);
     Route::apiResource('posts', PostController::class)->only(['index', 'show']);
