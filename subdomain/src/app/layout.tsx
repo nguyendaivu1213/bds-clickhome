@@ -12,6 +12,7 @@ const manrope = Manrope({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Subdomain - Bất động sản',
   description: 'Trang chủ - Hệ thống quản lý và trình bày dự án bất động sản.',
+  robots: 'noindex, nofollow',
 };
 
 export default function RootLayout({
