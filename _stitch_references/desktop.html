@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dự án Vinhomes - Vinhomes Land</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Manrope -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0f49bd',
+            secondary: '#7a7a7a',
+            accent: '#f1f1f1',
+          },
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
+          borderRadius: {
+            'custom': '8px',
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-utilities">
+    .project-card:hover {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+      transition: all 0.3s ease;
+    }
+    .footer-heading {
+      position: relative;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .footer-heading::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 40px;
+      height: 2px;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body class="font-sans text-gray-800 bg-white">
+<!-- BEGIN: MainHeader -->
+<header class="border-b border-gray-100 sticky top-0 bg-white z-50">
+<div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+<!-- Logo -->
+<div class="flex-shrink-0">
+<img alt="Vinhomes Land Logo" class="h-12 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfjVibS5Kx2bV18p4vK9aAgGHGIj0PH-RZt5AmU8OwDKzp59ry3vzApfhW0AMO81FUC9sb8szwZ-O8_kO4VJddQxDo6xnv7pxAh2p7F0Wm7WUwO4DjFrvu0h2qnCmLArL_mueQFiMSZA7WVv-ZTsba7g77JLtFpDAv7yclG9i_QNKqlH8LDG_5Wr3WIpDKrMqvZERYuMNWwJpQ5-UlqzbjDQY97X_8V7SZwdBKnai5qMW5MEjlDmdlr7f5ZOM-YklCJiYgEXC5joBH"/>
+</div>
+<!-- Navigation -->
+<nav class="hidden md:flex space-x-8 text-[13px] font-bold uppercase tracking-wider text-gray-700">
+<a class="hover:text-primary" href="#">Trang Chủ</a>
+<a class="hover:text-primary" href="#">Giới Thiệu</a>
+<a class="hover:text-primary" href="#">Ocean City</a>
+<a class="border-b-2 border-primary text-primary pb-1" href="#">Dự Án</a>
+<a class="hover:text-primary" href="#">Chuyển Nhượng</a>
+<a class="hover:text-primary" href="#">Thông Tin</a>
+<a class="hover:text-primary" href="#">Liên Hệ</a>
+<button class="text-gray-500 hover:text-primary">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</nav>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: Breadcrumbs -->
+<section class="bg-[#f8f8f8] py-3 border-b border-gray-200">
+<div class="max-w-7xl mx-auto px-4 text-xs text-gray-500">
+<span>Các dự án Vinhomes của Vingroup</span>
+</div>
+</section>
+<!-- END: Breadcrumbs -->
+<main class="max-w-7xl mx-auto px-4 py-12">
+<!-- BEGIN: IntroText -->
+<article class="mb-16">
+<p class="text-[15px] leading-relaxed text-gray-700 text-center max-w-5xl mx-auto mb-10">
+        Vinhomes là thương hiệu bất động sản cao cấp của tập đoàn Vingroup, đồng thời cũng là thương hiệu doanh nghiệp có giá trị đứng thứ 3 tại Việt Nam (Sau Viettel &amp; Vinamilk). Tính đến thời điểm năm 2024, tập đoàn Vingroup đang triển khai tất cả 30 dự án bất động sản mang thương hiệu "Vinhomes" trên khắp toàn quốc.
+      </p>
+<h1 class="text-2xl font-bold text-center text-gray-800 uppercase tracking-wide mb-6">
+        DỰ ÁN VINHOMES TẠI HÀ NỘI
+      </h1>
+<p class="text-[15px] leading-relaxed text-gray-600 text-center max-w-5xl mx-auto">
+        Được xem là đầu tàu của nền kinh tế Việt Nam, thị trường bất động sản tại thủ đô Hà Nội những năm qua luôn không ngừng phát triển và mở rộng, thu hút sự quan tâm của nhiều người dân cũng như các nhà đầu tư bất động sản trên khắp toàn quốc. Tính đến đầu năm 2024, tại thành phố Hà Nội đã có tất cả 18 dự án Vinhomes (Bao gồm cả đã hoàn thiện và đang trong quá trình xây dựng).
+      </p>
+</article>
+<!-- END: IntroText -->
+<!-- BEGIN: ProjectsGrid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+<!-- Card 1: Vinhomes The Gallery -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes The Gallery</h3>
+</div>
+<img alt="Vinhomes The Gallery" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxXWGYqFwYHUgHssDROpd5izdXyaQJ0O893lJYB7jfd-ZxNlLsGFylM4IqvXScgvv9FL3liNSBUAGQQvc6UxpUJM0-CsXdCfmPln20dtvRY6v6RyuAKZmY85VRbNWNfEO5zWogGSOHXYCYh5YH2Vuujg24fauDmSPUrY_fokTDaMrKfBXi72yrrckgB7i1o86iHAx_du4K1EiwO7v-2sJ7iY9c4ATnbOwpnO5x5Ik5Y6fS-bU9i2XCiFcZ5gHQ8uxRyytYOa6Yq7wB"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Số 148 Giảng Võ, quận Ba Đình, Hà Nội</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Shop TMDV</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 6/2025</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Năm 2026</p>
+</div>
+</div>
+<!-- Card 2: Vinhomes Wonder City -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Wonder City</h3>
+</div>
+<img alt="Vinhomes Wonder City" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGFqG9xHuxf5mwbx3pRDtofgdZlGmZtK1dGPA-OKwtOy-9YCRTAM2Cqk0wq3I8YsBwPirJ4DjogQd-rlDZtR_y20NrAf5PtLvqkCiG5VIkGX-HXYACBisf2_TEwVfaZzMBPvYwxgHDVZkoctQDTwygMM2xwf68PDljneAZMMHPyuvauRTBMQOljtWj2hBjmiD2BoHVkjRLd-hIeHtxQ-eQdhJq25aanVWr9IQRBaAkIEPi0DMEIEr-g7Jiu3SvG61G1SYzF78CzAan"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Xã Tân Hội &amp; Liên Trung, huyện Đan Phượng, Hà Nội</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Chung cư, biệt thự, liền kề</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 3/2025</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Năm 2025</p>
+</div>
+</div>
+<!-- Card 3: Vinhomes Global Gate -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Global Gate</h3>
+</div>
+<img alt="Vinhomes Global Gate" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1L0nyGcRYvIpEvwJUT23YUqQhMWraaBVAiqLOfpW3mTa-KBd_sT0YHXrDSG-W0WnmwLcMJrXoEbcgl4qgkQ3iwqrrKlcUyCubSXiNEa80g-ROJCoVyeUHiywMKafUkFHaY534ApM9lD2PHhiShjz6rolppZYlUVXqUzcrBSe932L5qmiLtvOM_Pa4q_-jmj0kwyYdD8Y_VGWtvjxD7LxGT_bJ0bY7Q0bY4HURyAwrh4M9zas6UVMQNsUnpIpcP23ncqp9DabZQYBj"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Xã Đông Hội &amp; Xuân Canh, huyện Đông Anh, Hà Nội</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Chung cư, biệt thự, liền kề</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 9/2024</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Năm 2025</p>
+</div>
+</div>
+<!-- Card 4: Vinhomes Marina -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Marina</h3>
+</div>
+<img alt="Vinhomes Marina" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeY9MTbqQsIFc9-KOtrPrXTkkiGetdUHWu8SvDfPMY6ySr2XxGKCjfR6zl91YfVUDaHzTN200UoGPU06e-HHPpaepQXGWbbroA_ToXKs_kVCrIhoICN2vCYIooO9hbxd7RZmqv5Cm3_UXTvpEVrXLO9PLIJQmjTYiCP8GYmjgQRzs5yhr6v6co4B5zay7vKE7COgSNz1J4oyeLXS0M6BV2tdHqtEfpxxYDspz4jT6x1nRhlMCfnAMUbacCZJqUdRrPss9vEVTvTeAO"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Chân Cầu Rào 2, quận Lê Chân, Hải Phòng</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Biệt thự, liền kề, shophouse</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 12/2018</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Tháng 2/2020</p>
+</div>
+</div>
+<!-- Card 5: Vinhomes New Center -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes New Center</h3>
+</div>
+<img alt="Vinhomes New Center" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoQfGW4pguYqfGFwA1XUCQHfbt7UEX4xcklYGVWrBBkR3qSKN_22W5vJal882J5MIF6xuhJ0_Sh_nGUiJNQMbfwaYnDPjqzKtPyngCHNxOHIMRQxjvCbJS5mvgFux1BSHk392dKOIcVjHtb_P7ilXKbRUqEJ83zsmjwG5WhN_wBd_da93EcK21Se-xYAMMpiETztMeUr24Hy1mphDgo_47Wi5LjRMUheBUirynAr4fnTgF-2G6mI48BdneM8HVfs4mNCvFrMGJXGce"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Ngã tư Hàm Nghi - Hà Huy Tập, thành phố Hà Tĩnh</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Chung cư</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 8/2018</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Tháng 8/2019</p>
+</div>
+</div>
+<!-- Card 6: Vinhomes Star City -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Star City</h3>
+</div>
+<img alt="Vinhomes Star City" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmKsmEZCFn8LVhJvgN_u8jbs176VkNu794h2GpURoPu7zdZG2_9C0eb-a0VuPBEq-2xFx7T7rosmQgrnW9-udmxa8bEio81bC7qjNRzo9vNdgUWlc2ENtkDw6szwbxPw0Jfq9FTUK-p2vEGYu63b6XybSKFKxzaxygjZOfXMPaR50Nt2rytTm9T88rOOdqAO_yjCS2eiXEeYKxo6CnYTYH2V2i9I1Hmo2CZgKQMX9Y0qKfpDkDlA1Jw7TxwPFAZKxqd24oUr6TLSao"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Đại lộ Lê Lợi, thành phố Thanh Hóa</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Biệt thự, liền kề, shophouse</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 4/2018</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Quý I/2019</p>
+</div>
+</div>
+<!-- Card 7: Vinhomes Imperia -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Imperia</h3>
+</div>
+<img alt="Vinhomes Imperia" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCnBQyRtrDv9wQLolwn-iBFAIcjwMcrN9brXh8fxNzzWnxqInFMgOsyg-BJwo36x-b4oIEMqUiXUOw_nA2wuj_S3qSPHPrC7oztEriRaISIhWJJl3xU4_Lvr8V3NLo9MNpswMHyOGt1hyjKBi0Mf4m5Txyb5w8i-QE-e5eSO6PXPmWj2oEsqjQ_KCT_xgznoH4iOIKzhOBSUwvI3XwXYldSNm5q4MVmtd5-ZJDvAc-n35QKzfKhcSNkCwF64NRZHsqgz8BxxoLFlMLK"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Số 1 Bạch Đằng, quận Hồng Bàng, Hải Phòng</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Biệt thự, liền kề, shophouse</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 3/2017</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Quý III/2018</p>
+</div>
+</div>
+<!-- Card 8: Vinhomes Dragon Bay -->
+<div class="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full">
+<div class="text-center py-4 px-2">
+<h3 class="font-bold text-gray-800 text-[17px]">Vinhomes Dragon Bay</h3>
+</div>
+<img alt="Vinhomes Dragon Bay" class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZThVBj1My46WsNs4PD0F5T2n4XyDRka0lmVxmnKA90X5YJ_UL4eTcTw372Dz-PwsjAWa19QeKBb2JmG-cQ-1OPpa8J9dtuEXnkvoLt2Q5b9uabuxVcPAC7ezUwV3X7O0ePD-xXrq341HUSStoDzm9rUD1svQspA-8V6cVMbLaBMjhNeJ92FDFNFKWpFYwWFFB3Ft3H6opNN-HVZsnswhV-Ko0-lF8KdmVwbTVJLOuOd5a581m1VLkt4NVQaSwmwEfIJ4U8MkkmkRs"/>
+<div class="p-6 text-[14px] leading-relaxed text-gray-600 flex-grow">
+<p class="mb-2"><span class="font-medium text-gray-800">Vị trí:</span> Số 1 Bến Đoan, thành phố Hạ Long, Quảng Ninh</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Loại hình:</span> Shophouse</p>
+<p class="mb-2"><span class="font-medium text-gray-800">Mở bán:</span> Tháng 3/2016</p>
+<p><span class="font-medium text-gray-800">Bàn giao:</span> Quý IV/2016</p>
+</div>
+</div>
+</div>
+<!-- END: ProjectsGrid -->
+<!-- BEGIN: PostContentText -->
+<p class="text-[15px] leading-relaxed text-gray-600 italic text-center max-w-5xl mx-auto border-t border-gray-100 pt-8">
+      Trên đây là thông tin về toàn bộ các dự án mang thương hiệu Vinhomes đã và đang được Vingroup triển khai xây dựng tính đến đầu năm 2024. Dự kiến trong giai đoạn giữa năm 2024 – 2025, Vingroup sẽ triển khai thêm dự án mới tại các khu vực Nguyễn Trãi, Cổ Loa, Đan Phượng (Hà Nội). Mọi thông tin chi tiết về dự án này chúng tôi cập nhật trong thời gian sớm nhất.
+    </p>
+<!-- END: PostContentText -->
+</main>
+<!-- BEGIN: MainFooter -->
+<footer class="bg-[#1a1a1a] text-[#ddd] pt-16 pb-8">
+<div class="max-w-7xl mx-auto px-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+<!-- Column 1: Projects 2020-2025 -->
+<div>
+<h4 class="footer-heading font-bold text-white uppercase tracking-wider text-[15px]">DỰ ÁN NĂM 2020 - 2025</h4>
+<ul class="space-y-3 text-[14px]">
+<li><a class="hover:text-white" href="#">Vinhomes Green Paradise</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Golden City</a></li>
+<li><a class="hover:text-white text-primary font-medium" href="#">Vinhomes The Gallery</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Wonder City</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Global Gate</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Royal Island</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Golden Avenue</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Sky Park</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Ocean Park 3</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Ocean Park 2</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Ocean Park</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Smart City</a></li>
+</ul>
+</div>
+<!-- Column 2: Projects 2017-2019 -->
+<div>
+<h4 class="footer-heading font-bold text-white uppercase tracking-wider text-[15px]">DỰ ÁN NĂM 2017 - 2019</h4>
+<ul class="space-y-3 text-[14px]">
+<li><a class="hover:text-white" href="#">Vinhomes Symphony</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Green Villas</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes West Point</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Riverside The Harmony</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Green Bay</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Skylake</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes New Center</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Marina</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Star City</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Imperia</a></li>
+</ul>
+</div>
+<!-- Column 3: Projects 2010-2016 -->
+<div>
+<h4 class="footer-heading font-bold text-white uppercase tracking-wider text-[15px]">DỰ ÁN NĂM 2010 - 2016</h4>
+<ul class="space-y-3 text-[14px]">
+<li><a class="hover:text-white" href="#">Vinhomes Metropolis</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Thăng Long</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Gardenia</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Nguyễn Chí Thanh</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Times City</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Royal City</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Riverside</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Golden River</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Central Park</a></li>
+<li><a class="hover:text-white" href="#">Vinhomes Dragon Bay</a></li>
+</ul>
+</div>
+<!-- Column 4: Contact Info -->
+<div>
+<h4 class="footer-heading font-bold text-white uppercase tracking-wider text-[15px]">THÔNG TIN LIÊN HỆ</h4>
+<div class="space-y-4 text-[14px]">
+<p>
+<span class="block text-white font-medium mb-1">Địa chỉ:</span>
+              Liền kề PB17-31, khu đô thị Vinhomes Ocean Park 3, xã Văn Giang, Hưng Yên
+            </p>
+<p>
+<span class="block text-white font-medium mb-1">Hotline:</span>
+<a class="text-primary font-bold" href="tel:0919085559">0919 085 559</a>
+</p>
+<p>
+<span class="block text-white font-medium mb-1">Email:</span>
+              info@vinhomesland.vn
+            </p>
+<p>
+<span class="block text-white font-medium mb-1">Website:</span>
+              https://vinhomesland.vn
+            </p>
+</div>
+</div>
+</div>
+<!-- Footer Bottom -->
+<div class="mt-16 pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between text-[12px] text-gray-500">
+<div class="flex items-center space-x-4 mb-4 md:mb-0">
+<img alt="DMCA Protected" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ0jJaJAcSkXjLN055RsA-sFINEvFJKDz_C-SFJzr4w5ZDQ75lRmyutMYIU8rYPMW14_zl8YHXrNlHeJZ1ICPBfKLbD5UEEwRJBCPFVoj7xSfKzPP0sWHn5RE-wryqaXVrvs2hNz4zHncuLWhfK4zVVFwKrYZHbmdkgE4cIVHZAJGXnGr32JjkU5isuvO47HxqwH9TBbctCt8M9KElxuDysURQXSI0W2H5xbVXJFWw76ZuqmLzdZ0sSiTJ0355Xinz0QhYNk6FpchA"/>
+</div>
+<div class="flex space-x-6">
+<a class="hover:text-white" href="#"><i class="fab fa-facebook-f"></i></a>
+<a class="hover:text-white" href="#"><i class="fab fa-twitter"></i></a>
+<a class="hover:text-white" href="#"><i class="fab fa-instagram"></i></a>
+<a class="hover:text-white" href="#"><i class="fab fa-pinterest"></i></a>
+<a class="hover:text-white" href="#"><i class="fab fa-linkedin-in"></i></a>
+</div>
+</div>
+</div>
+</footer>
+<!-- END: MainFooter -->
+<!-- BEGIN: StickyElements -->
+<div class="fixed bottom-6 left-6 z-[60]">
+<a class="bg-[#e2cb83] text-[#4d422a] py-2 px-4 rounded-full flex items-center shadow-lg font-bold text-sm" href="tel:0919085559">
+<span class="bg-white p-1 rounded-full mr-2">
+<svg class="h-4 w-4" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.176 1.1c.066-.066.145-.115.228-.145a.674.674 0 01.45 0c.083.03.162.079.228.145l2.474 2.474c.066.066.115.145.145.228a.674.674 0 010 .45.674.674 0 01-.145.228L7.83 6.207a10.605 10.605 0 005.963 5.963l1.727-1.726c.066-.066.145-.115.228-.145a.674.674 0 01.45 0c.083.03.162.079.228.145l2.474 2.474c.066.066.115.145.145.228a.674.674 0 010 .45.674.674 0 01-.145.228l-2.023 2.022a3.333 3.333 0 01-4.714 0l-1.011-1.011a12.605 12.605 0 01-8.91-8.91l-1.011-1.011a3.333 3.333 0 010-4.714L6.176 1.1z"></path>
+</svg>
+</span>
+      HOTLINE 0919 085 559
+    </a>
+</div>
+<div class="fixed bottom-6 right-6 z-[60]">
+<button class="bg-[#333] text-white p-3 rounded-custom shadow-md hover:bg-gray-700">
+<svg class="h-5 w-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- END: StickyElements -->
+<!-- Font Awesome (for social icons) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+</body></html>

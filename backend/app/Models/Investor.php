@@ -11,11 +11,11 @@ class Investor extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'website_link', 'subdomain', 'logo', 'intro_image', 'footer_image', 'status'
+        'website_link', 'subdomain', 'logo', 'intro_image', 'footer_image', 'about_image', 'status'
     ];
 
     public $translatedAttributes = [
-        'name', 'short_description', 'content'
+        'name', 'short_description', 'content', 'stats', 'benefits'
     ];
 
     public function projects()

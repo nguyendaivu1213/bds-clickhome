@@ -49,9 +49,12 @@ class InvestorController extends Controller
             'logo'              => 'nullable|string|max:500',
             'intro_image'       => 'nullable|string|max:500',
             'footer_image'      => 'nullable|string|max:500',
+            'about_image'       => 'nullable|string|max:500',
             'status'            => 'in:active,inactive',
             'short_description' => 'nullable|string|max:1000',
             'content'           => 'nullable|string',
+            'stats'             => 'nullable|array',
+            'benefits'          => 'nullable|array',
         ], [
             'name.required'      => 'Tên chủ đầu tư không được để trống.',
             'subdomain.required' => 'Subdomain không được để trống.',
@@ -66,6 +69,7 @@ class InvestorController extends Controller
             'logo'         => $validated['logo'] ?? null,
             'intro_image'  => $validated['intro_image'] ?? null,
             'footer_image' => $validated['footer_image'] ?? null,
+            'about_image'  => $validated['about_image'] ?? null,
             'status'       => $validated['status'] ?? 'active',
             'created_by'   => auth()->id(),
             'updated_by'   => auth()->id(),
@@ -75,6 +79,8 @@ class InvestorController extends Controller
         $investor->translateOrNew('vi')->name              = $validated['name'];
         $investor->translateOrNew('vi')->short_description = $validated['short_description'] ?? null;
         $investor->translateOrNew('vi')->content           = $validated['content'] ?? null;
+        $investor->translateOrNew('vi')->stats             = $validated['stats'] ?? null;
+        $investor->translateOrNew('vi')->benefits          = $validated['benefits'] ?? null;
         $investor->save();
 
         return response()->json(
@@ -108,9 +114,12 @@ class InvestorController extends Controller
             'logo'              => 'nullable|string|max:500',
             'intro_image'       => 'nullable|string|max:500',
             'footer_image'      => 'nullable|string|max:500',
+            'about_image'       => 'nullable|string|max:500',
             'status'            => 'in:active,inactive',
             'short_description' => 'nullable|string|max:1000',
             'content'           => 'nullable|string',
+            'stats'             => 'nullable|array',
+            'benefits'          => 'nullable|array',
         ], [
             'name.required'      => 'Tên chủ đầu tư không được để trống.',
             'subdomain.required' => 'Subdomain không được để trống.',
@@ -119,17 +128,16 @@ class InvestorController extends Controller
             'website_link.url'   => 'Website phải là URL hợp lệ.',
         ]);
 
-        $investor->update(array_merge(
-            array_filter([
-                'subdomain'    => $validated['subdomain'] ?? null,
-                'website_link' => $validated['website_link'] ?? null,
-                'logo'         => $validated['logo'] ?? null,
-                'intro_image'  => $validated['intro_image'] ?? null,
-                'footer_image' => $validated['footer_image'] ?? null,
-                'status'       => $validated['status'] ?? null,
-            ], fn($v) => $v !== null),
-            ['updated_by' => auth()->id()]
-        ));
+        $updateData = ['updated_by' => auth()->id()];
+        $fields = ['subdomain', 'website_link', 'logo', 'intro_image', 'footer_image', 'about_image', 'status'];
+        
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $updateData[$field] = $validated[$field] ?? null;
+            }
+        }
+
+        $investor->update($updateData);
 
         // Cập nhật bản dịch
         if (isset($validated['name'])) {
@@ -140,6 +148,12 @@ class InvestorController extends Controller
         }
         if (array_key_exists('content', $validated)) {
             $investor->translateOrNew('vi')->content = $validated['content'];
+        }
+        if (array_key_exists('stats', $validated)) {
+            $investor->translateOrNew('vi')->stats = $validated['stats'];
+        }
+        if (array_key_exists('benefits', $validated)) {
+            $investor->translateOrNew('vi')->benefits = $validated['benefits'];
         }
         $investor->save();
 

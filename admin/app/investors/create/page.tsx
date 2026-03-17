@@ -25,13 +25,16 @@ export default function CreateInvestorPage() {
     logo: '',
     intro_image: '',
     footer_image: '',
+    about_image: '',
     short_description: '',
     content: '',
+    stats: [] as { number: string; label: string }[],
+    benefits: [] as { icon: string; title: string; description: string }[],
     status: 'active' as 'active' | 'inactive',
   });
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [activeImageField, setActiveImageField] = useState<'logo' | 'intro_image' | 'footer_image' | null>(null);
+  const [activeImageField, setActiveImageField] = useState<'logo' | 'intro_image' | 'footer_image' | 'about_image' | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +82,7 @@ export default function CreateInvestorPage() {
           rows={3}
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
-          value={form[key]}
+          value={form[key] as string}
           onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
         />
       ) : (
@@ -87,7 +90,7 @@ export default function CreateInvestorPage() {
           type={type}
           className={`w-full px-4 py-3 rounded-xl border bg-slate-50 text-slate-700 text-sm outline-none transition-all focus:ring-2 focus:ring-primary/20 focus:border-primary ${errors[key] ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200'}`}
           placeholder={placeholder}
-          value={form[key]}
+          value={form[key] as string}
           onChange={e => { setForm({ ...form, [key]: e.target.value }); setErrors({ ...errors, [key]: '' }); }}
         />
       )}
@@ -96,16 +99,16 @@ export default function CreateInvestorPage() {
     </div>
   );
 
-  const imageField = (label: string, key: 'logo' | 'intro_image' | 'footer_image', hint: string) => (
+  const imageField = (label: string, key: 'logo' | 'intro_image' | 'footer_image' | 'about_image', hint: string) => (
     <div className="flex flex-col gap-3">
       <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
         <span className="material-symbols-outlined text-primary text-[20px]">
-          {key === 'logo' ? 'business' : key === 'intro_image' ? 'image' : 'bottom_panel_open'}
+          {key === 'logo' ? 'business' : key === 'intro_image' ? 'image' : key === 'about_image' ? 'perm_media' : 'bottom_panel_open'}
         </span>
         {label}
       </label>
       <div className="flex flex-col sm:flex-row items-start gap-4">
-        <div className="size-32 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shrink-0 transition-all hover:bg-slate-100/50">
+        <div className="size-32 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden shrink-0 transition-all hover:bg-slate-100/50 relative">
           {form[key] ? (
             <img src={form[key]} className="w-full h-full object-cover" alt={label} />
           ) : (
@@ -115,7 +118,7 @@ export default function CreateInvestorPage() {
         <div className="flex-1 w-full flex flex-col gap-3">
           <input 
             type="text" 
-            className="w-full border border-slate-200 rounded-xl h-12 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
+            className="w-full border border-slate-200 rounded-xl h-12 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-text font-mono text-xs text-slate-600 truncate" 
             placeholder={`URL ${label.toLowerCase()}...`} 
             value={form[key]}
             onChange={e => setForm({...form, [key]: e.target.value})}
@@ -140,7 +143,136 @@ export default function CreateInvestorPage() {
               </button>
             )}
           </div>
+          <p className="text-xs text-slate-400 mt-1">{hint}</p>
         </div>
+      </div>
+    </div>
+  );
+
+  const renderStatsBuilder = () => (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-bold text-slate-700">Những Con Số Biết Nói (Stats)</label>
+        <button
+          type="button"
+          onClick={() => setForm({ ...form, stats: [...(form.stats || []), { number: '', label: '' }] })}
+          className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-bold hover:bg-primary/20 transition-colors"
+        >
+          + Thêm Chỉ Số
+        </button>
+      </div>
+      {(!form.stats || form.stats.length === 0) && <p className="text-sm text-slate-400 italic">Chưa có chỉ số nào.</p>}
+      <div className="space-y-3">
+        {(form.stats || []).map((stat, idx) => (
+          <div key={idx} className="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Số (Vd: 000)"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary"
+                value={stat.number}
+                onChange={e => {
+                  const newStats = [...form.stats];
+                  newStats[idx].number = e.target.value;
+                  setForm({ ...form, stats: newStats });
+                }}
+              />
+              <input
+                type="text"
+                placeholder="Nhãn (Vd: Đại lý phân phối)"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary"
+                value={stat.label}
+                onChange={e => {
+                  const newStats = [...form.stats];
+                  newStats[idx].label = e.target.value;
+                  setForm({ ...form, stats: newStats });
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newStats = [...form.stats];
+                newStats.splice(idx, 1);
+                setForm({ ...form, stats: newStats });
+              }}
+              className="mt-1 text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">delete</span>
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderBenefitsBuilder = () => (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-bold text-slate-700">Lợi Ích Của Khách Hàng (Benefits)</label>
+        <button
+          type="button"
+          onClick={() => setForm({ ...form, benefits: [...(form.benefits || []), { icon: 'star', title: '', description: '' }] })}
+          className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-bold hover:bg-primary/20 transition-colors"
+        >
+          + Thêm Lợi Ích
+        </button>
+      </div>
+      {(!form.benefits || form.benefits.length === 0) && <p className="text-sm text-slate-400 italic">Chưa có lợi ích nào.</p>}
+      <div className="space-y-3">
+        {(form.benefits || []).map((benefit, idx) => (
+          <div key={idx} className="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-3">
+                <input
+                  type="text"
+                  placeholder="Icon code"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary font-mono text-slate-500"
+                  value={benefit.icon}
+                  title="Nhập tên Material Icon. Ví dụ: verified, verified_user, star, check_circle"
+                  onChange={e => {
+                    const newBenefits = [...form.benefits];
+                    newBenefits[idx].icon = e.target.value;
+                    setForm({ ...form, benefits: newBenefits });
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Tiêu đề (Vd: Được mua với giá tốt nhất)"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary"
+                  value={benefit.title}
+                  onChange={e => {
+                    const newBenefits = [...form.benefits];
+                    newBenefits[idx].title = e.target.value;
+                    setForm({ ...form, benefits: newBenefits });
+                  }}
+                />
+              </div>
+              <textarea
+                placeholder="Mô tả lợi ích..."
+                rows={2}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:border-primary resize-none"
+                value={benefit.description}
+                onChange={e => {
+                  const newBenefits = [...form.benefits];
+                  newBenefits[idx].description = e.target.value;
+                  setForm({ ...form, benefits: newBenefits });
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const newBenefits = [...form.benefits];
+                newBenefits.splice(idx, 1);
+                setForm({ ...form, benefits: newBenefits });
+              }}
+              className="mt-1 text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">delete</span>
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -203,10 +335,19 @@ export default function CreateInvestorPage() {
         <div className="space-y-8 pt-8 border-t border-slate-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
              {imageField('Logo Chủ Đầu Tư', 'logo', 'Ảnh logo chính thức')}
-             {imageField('Ảnh Giới Thiệu', 'intro_image', 'Ảnh bìa hoặc ảnh đại diện')}
+             {imageField('Ảnh Giới Thiệu (Hero)', 'intro_image', 'Ảnh bìa hoặc ảnh đại diện trang chủ')}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-             {imageField('Ảnh Footer', 'footer_image', 'Ảnh hiển thị dưới chân trang (nếu có)')}
+             {imageField('Ảnh trang Giới Thiệu (About)', 'about_image', 'Ảnh tròn hoặc bo góc hiển thị ở trang About')}
+             {imageField('Ảnh Footer', 'footer_image', 'Ảnh nền hiển thị dưới chân trang')}
+          </div>
+        </div>
+
+        <div className="space-y-8 pt-8 mt-8 border-t border-slate-100">
+          <h3 className="text-lg font-bold text-slate-800 border-l-4 border-primary pl-3">Thông Tin Mở Rộng Trang About</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {renderStatsBuilder()}
+            {renderBenefitsBuilder()}
           </div>
         </div>
 

@@ -12,9 +12,19 @@ class FolderController extends Controller
     public function index(Request $request): JsonResponse
     {
         if ($request->get('view') === 'tree') {
+            // Fetch 5 levels recursively
             $folders = Folder::whereNull('parent_id')
                 ->with(['children' => function($query) {
-                    $query->withCount(['children', 'media']);
+                    $query->withCount(['children', 'media'])
+                          ->with(['children' => function($q2) {
+                              $q2->withCount(['children', 'media'])
+                                 ->with(['children' => function($q3) {
+                                     $q3->withCount(['children', 'media'])
+                                        ->with(['children' => function($q4) {
+                                            $q4->withCount(['children', 'media']);
+                                        }]);
+                                 }]);
+                          }]);
                 }])
                 ->withCount(['children', 'media'])
                 ->get();
@@ -44,6 +54,21 @@ class FolderController extends Controller
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:folders,id',
         ]);
+
+        // Check depth if parent_id is provided
+        if ($validated['parent_id']) {
+            $depth = 1;
+            $parent = Folder::find($validated['parent_id']);
+            while ($parent && $parent->parent_id) {
+                $depth++;
+                $parent = Folder::find($parent->parent_id);
+                if ($depth >= 5) {
+                    return response()->json([
+                        'message' => 'Hệ thống chỉ hỗ trợ tối đa 5 cấp thư mục.'
+                    ], 422);
+                }
+            }
+        }
 
         $folder = Folder::create([
             'name' => $validated['name'],

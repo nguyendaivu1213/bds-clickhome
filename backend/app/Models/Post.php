@@ -4,8 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Post extends Model
+use Astrotomic\Translatable\Translatable;
+use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
+
+class Post extends Model implements TranslatableContract
 {
+    use Translatable;
+
     protected $fillable = [
         'site_id',
         'category_id',
@@ -14,6 +19,10 @@ class Post extends Model
         'status',
         'featured_image',
         'published_at',
+    ];
+
+    public $translatedAttributes = [
+        'title', 'excerpt', 'content', 'seo_title', 'seo_description', 'seo_keywords', 'canonical_url'
     ];
 
     protected $casts = [
@@ -35,7 +44,7 @@ class Post extends Model
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function translations()
+    public function translations(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(PostTranslation::class);
     }

@@ -9,10 +9,21 @@ class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $posts = \App\Models\Post::with('translations', 'category.translations')
-            ->where('status', 'published')
-            ->latest('published_at')
-            ->paginate(12);
+        $query = \App\Models\Post::with('translations', 'category.translations')
+            ->where('status', 'published');
+
+        if ($categoryId = $request->query('category_id')) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($categorySlug = $request->query('category_slug')) {
+            $query->whereHas('category', function($q) use ($categorySlug) {
+                $q->where('slug', $categorySlug);
+            });
+        }
+
+        $posts = $query->latest('published_at')
+            ->paginate($request->query('per_page', 12));
 
         return response()->json($posts);
     }

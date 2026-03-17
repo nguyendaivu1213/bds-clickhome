@@ -40,9 +40,9 @@ class MediaController extends Controller
 
         // Add full URL to each file
         $media->getCollection()->transform(function ($item) {
-            $item->url = Storage::disk('public')->url($item->original_file);
-            $item->thumbnail_url = $item->thumbnail_file ? Storage::disk('public')->url($item->thumbnail_file) : $item->url;
-            $item->preview_url = $item->preview_file ? Storage::disk('public')->url($item->preview_file) : $item->url;
+            $item->url = \Storage::disk('public')->url($item->original_file);
+            $item->thumbnail_url = $item->thumbnail_file ? \Storage::disk('public')->url($item->thumbnail_file) : $item->url;
+            $item->preview_url = $item->preview_file ? \Storage::disk('public')->url($item->preview_file) : $item->url;
             return $item;
         });
 
@@ -118,10 +118,12 @@ class MediaController extends Controller
         return response()->json($media, 201);
     }
 
-    public function destroy(Media $media): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
+        $media = Media::findOrFail($id);
+        
         // Delete all versions from storage
-        Storage::disk('public')->delete($media->original_file);
+        if ($media->original_file) Storage::disk('public')->delete($media->original_file);
         if ($media->thumbnail_file) Storage::disk('public')->delete($media->thumbnail_file);
         if ($media->preview_file) Storage::disk('public')->delete($media->preview_file);
         

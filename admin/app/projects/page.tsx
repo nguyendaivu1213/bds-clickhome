@@ -8,6 +8,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v
 interface Project {
   id: number;
   status: string | null;
+  is_published: boolean | number | null;
   perspective_image: string | null;
   translations?: {
     locale: string;
@@ -21,12 +22,33 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [filterInvestor, setFilterInvestor] = useState('');
+  const [filterPublished, setFilterPublished] = useState('all');
+  const [investors, setInvestorsList] = useState<any[]>([]);
+
+  // Lấy danh sách chủ đầu tư để lọc
+  useEffect(() => {
+    fetch(`${API_BASE}/investors?per_page=100`)
+      .then(res => res.json())
+      .then(data => {
+        const items = data.data || (Array.isArray(data) ? data : []);
+        setInvestorsList(items);
+      })
+      .catch(console.error);
+  }, []);
 
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE}/projects?per_page=100${search ? `&search=${search}` : ''}`, {
+      const params = new URLSearchParams({
+        per_page: '100',
+      });
+      if (search) params.append('search', search);
+      if (filterInvestor) params.append('investor_id', filterInvestor);
+      if (filterPublished !== 'all') params.append('is_published', filterPublished);
+
+      const res = await fetch(`${API_BASE}/projects?${params.toString()}`, {
         headers: { 'Accept': 'application/json' }
       });
       if (!res.ok) throw new Error('Không thể tải dữ liệu dự án');
@@ -37,7 +59,22 @@ export default function ProjectsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [search, filterInvestor, filterPublished]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa dự án này?')) return;
+    
+    try {
+      const res = await fetch(`${API_BASE}/projects/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Không thể xóa dự án');
+      fetchProjects();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   useEffect(() => {
     const t = setTimeout(fetchProjects, 300);
@@ -70,37 +107,52 @@ export default function ProjectsPage() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-4 mb-8 shadow-sm">
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-            <input 
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm outline-none transition-all" 
-              placeholder="Tìm bằng tên, vị trí hoặc ID..." 
-              type="text" 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+              <input 
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm outline-none transition-all" 
+                placeholder="Tìm bằng tên, vị trí hoặc ID..." 
+                type="text" 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="flex overflow-x-auto pb-1 -mx-2 px-2 lg:mx-0 lg:px-0 lg:pb-0 gap-2 shrink-0 scrollbar-hide">
-            <button className="flex items-center gap-2 px-4 py-3 bg-primary text-white rounded-xl text-sm font-semibold whitespace-nowrap">
-              <span>Tất cả Dự án</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 rounded-xl text-sm font-semibold hover:bg-primary/5 transition-colors whitespace-nowrap border border-slate-200">
-              <span className="material-symbols-outlined text-xl">event_upcoming</span>
-              <span>Lên Kế Hoạch</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 rounded-xl text-sm font-semibold hover:bg-primary/5 transition-colors whitespace-nowrap border border-slate-200">
-              <span className="material-symbols-outlined text-xl">construction</span>
-              <span>Đang Thi Công</span>
-            </button>
-            <button className="flex items-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 rounded-xl text-sm font-semibold hover:bg-primary/5 transition-colors whitespace-nowrap border border-slate-200">
-              <span className="material-symbols-outlined text-xl">check_circle</span>
-              <span>Đã Hoàn Thành</span>
-            </button>
-            <div className="h-10 w-px bg-slate-200 mx-2 hidden lg:block"></div>
-            <button className="flex items-center gap-2 px-4 py-3 bg-slate-50 text-slate-600 rounded-xl text-sm font-semibold hover:bg-primary/5 transition-colors whitespace-nowrap border border-dashed border-slate-300">
-              <span className="material-symbols-outlined text-xl">filter_list</span>
-              <span>Bộ Lọc</span>
+          
+          <div className="flex flex-wrap gap-3">
+            <select
+              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/50"
+              value={filterInvestor}
+              onChange={(e) => setFilterInvestor(e.target.value)}
+            >
+              <option value="">Tất cả Chủ đầu tư</option>
+              {investors.map((inv: any) => {
+                const name = inv.translations?.find((t: any) => t.locale === 'vi')?.name || inv.id;
+                return <option key={inv.id} value={inv.id}>{name}</option>;
+              })}
+            </select>
+
+            <select
+              className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/50"
+              value={filterPublished}
+              onChange={(e) => setFilterPublished(e.target.value)}
+            >
+              <option value="all">Tất cả Trạng thái</option>
+              <option value="published">Đã Công khai</option>
+              <option value="draft">Bản nháp</option>
+            </select>
+
+            <button 
+              onClick={() => {
+                setSearch('');
+                setFilterInvestor('');
+                setFilterPublished('all');
+              }}
+              className="text-primary text-sm font-semibold hover:underline px-2"
+            >
+              Xóa lọc
             </button>
           </div>
         </div>
@@ -132,10 +184,15 @@ export default function ProjectsPage() {
           return (
             <div key={project.id} className="group bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative">
               <div className="relative h-56 overflow-hidden">
-                <div className="absolute top-4 left-4 z-10">
+                <div className="absolute top-4 left-4 z-10 flex gap-2">
                   <span className={`px-3 py-1 rounded-full ${status.color} text-white text-[10px] font-bold uppercase tracking-widest shadow-lg`}>
                     {status.label}
                   </span>
+                  {(project as any).is_published ? (
+                    <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-200">Công khai</span>
+                  ) : (
+                    <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-slate-200">Bản nháp</span>
+                  )}
                 </div>
                 <img 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
@@ -149,7 +206,10 @@ export default function ProjectsPage() {
                   >
                     Chỉnh sửa
                   </Link>
-                  <button className="p-2 bg-red-500/20 backdrop-blur-md text-white rounded-lg border border-red-500/30 hover:bg-red-500/40 transition-colors">
+                  <button 
+                    onClick={() => handleDelete(project.id)}
+                    className="p-2 bg-red-500/20 backdrop-blur-md text-white rounded-lg border border-red-500/30 hover:bg-red-500/40 transition-colors"
+                  >
                     <span className="material-symbols-outlined text-sm">delete</span>
                   </button>
                 </div>

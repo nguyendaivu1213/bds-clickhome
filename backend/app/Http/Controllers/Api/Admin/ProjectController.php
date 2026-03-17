@@ -10,9 +10,33 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(\App\Models\Project::with('translations', 'site')->latest()->paginate(10));
+        $query = \App\Models\Project::with('translations', 'site');
+
+        // Lọc theo search (tên dự án)
+        if ($search = $request->get('search')) {
+            $query->whereHas('translations', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        // Lọc theo chủ đầu tư
+        if ($investorId = $request->get('investor_id')) {
+            $query->where('investor_id', $investorId);
+        }
+
+        // Lọc theo trạng thái công khai
+        if ($request->has('is_published') && $request->get('is_published') !== 'all') {
+            $query->where('is_published', $request->get('is_published') === 'published');
+        }
+
+        // Sắp xếp theo ngày giờ cập nhật mới nhất
+        $query->orderBy('updated_at', 'desc');
+
+        $projects = $query->paginate($request->get('per_page', 20));
+
+        return response()->json($projects);
     }
 
     public function store(Request $request)
@@ -113,7 +137,7 @@ class ProjectController extends Controller
             'tags' => $request->tags,
         ];
 
-        $project->translateOrNew('vi')->fill(array_filter($data, fn($v) => !is_null($v)));
+        $project->translateOrNew('vi')->fill($data);
 
         $project->save();
 

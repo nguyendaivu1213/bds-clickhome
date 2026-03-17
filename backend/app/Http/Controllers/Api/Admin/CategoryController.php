@@ -99,18 +99,16 @@ class CategoryController extends Controller
             'icon_image'       => 'nullable|string|max:255',
         ]);
 
-        $category->update(array_merge(
-            array_filter([
-                'parent_id'        => $validated['parent_id'] ?? null,
-                'data_type'        => $validated['data_type'] ?? null,
-                'display_position' => $validated['display_position'] ?? null,
-                'template_name'    => $validated['template_name'] ?? null,
-                'status'           => $validated['status'] ?? null,
-                'menu_image'       => $validated['menu_image'] ?? null,
-                'icon_image'       => $validated['icon_image'] ?? null,
-            ], fn($v) => $v !== null),
-            ['updated_by' => auth()->id(), 'site_id' => 1]
-        ));
+        $updateData = ['updated_by' => auth()->id(), 'site_id' => 1];
+        $fields = ['parent_id', 'data_type', 'display_position', 'template_name', 'status', 'menu_image', 'icon_image'];
+
+        foreach ($fields as $field) {
+            if ($request->has($field)) {
+                $updateData[$field] = $validated[$field] ?? null;
+            }
+        }
+
+        $category->update($updateData);
 
         if (array_key_exists('title', $validated)) {
             $category->translateOrNew('vi')->title = $validated['title'];

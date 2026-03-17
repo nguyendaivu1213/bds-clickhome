@@ -35,7 +35,8 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [folderTree, setFolderTree] = useState<FolderItem[]>([]);
   const [currentFolderId, setCurrentFolderId] = useState<number | null>(null);
-  const [breadcrumbs, setBreadcrumbs] = useState<{id: number | null, name: string}[]>([{id: null, name: 'Gốc'}]);
+  const [currentFolderDepth, setCurrentFolderDepth] = useState(1);
+  const [breadcrumbs, setBreadcrumbs] = useState<{id: number | null, name: string, depth: number}[]>([{id: null, name: 'Gốc', depth: 1}]);
   const [search, setSearch] = useState('');
   const [uploading, setUploading] = useState(false);
   
@@ -117,6 +118,9 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
         setFolderFormName('');
         setShowNewFolderInput(false);
         fetchFolderTree();
+      } else {
+        const error = await res.json();
+        alert(error.message || 'Lỗi khi tạo thư mục');
       }
     } catch (err) {
       console.error('Lỗi khi tạo thư mục:', err);
@@ -223,34 +227,35 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
     setUploading(false);
   };
 
-  const enterFolder = (folder: {id: number | null, name: string}) => {
+  const enterFolder = (folder: {id: number | null, name: string}, depth: number = 1) => {
     setCurrentFolderId(folder.id);
+    setCurrentFolderDepth(depth);
     if (folder.id === null) {
-      setBreadcrumbs([{id: null, name: 'Gốc'}]);
+      setBreadcrumbs([{id: null, name: 'Gốc', depth: 1}]);
     } else {
-      // Find breadcrumb path or just update breadcrumbs
-      // For simplicity, let's just reset breadcrumbs to Home > Folder when clicking from tree
-      // A more robust way would be to traverse the tree to find the path
-      setBreadcrumbs([{id: null, name: 'Gốc'}, {id: folder.id, name: folder.name}]);
+      // Find breadcrumb path or rebuild it
+      // Simple rebuild for now (Gốc -> Selected Folder)
+      setBreadcrumbs([{id: null, name: 'Gốc', depth: 1}, {id: folder.id, name: folder.name, depth: depth}]);
     }
   };
 
   const navigateToBreadcrumb = (index: number) => {
     const target = breadcrumbs[index];
     setCurrentFolderId(target.id);
+    setCurrentFolderDepth(target.depth);
     setBreadcrumbs(breadcrumbs.slice(0, index + 1));
   };
 
-  const FolderTreeItem = ({ folder, level = 0 }: { folder: FolderItem, level?: number }) => {
+  const FolderTreeItem = ({ folder, level = 1 }: { folder: FolderItem, level?: number }) => {
     const isActive = currentFolderId === folder.id;
     return (
       <div className="flex flex-col">
         <div 
           className={`group flex items-center justify-between pr-2 rounded-xl transition-all hover:bg-white hover:shadow-sm ${isActive ? 'bg-primary/10 text-primary shadow-sm' : ''}`}
-          style={{ paddingLeft: `${level * 12}px` }}
+          style={{ paddingLeft: `${(level - 1) * 12}px` }}
         >
           <div 
-            onClick={() => enterFolder({id: folder.id, name: folder.name})}
+            onClick={() => enterFolder({id: folder.id, name: folder.name}, level + 1)}
             className={`flex-1 flex items-center gap-3 px-4 py-2.5 cursor-pointer font-medium ${isActive ? 'text-primary' : 'text-slate-600 hover:text-primary'}`}
           >
             <span className={`material-symbols-outlined text-[20px] ${isActive ? 'text-primary' : 'text-amber-400'}`}>
@@ -303,7 +308,9 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
     e.stopPropagation();
     if (!confirm('Xóa tệp này vĩnh viễn?')) return;
     try {
-      const res = await fetch(`${API_BASE}/media/${id}`, {
+      // Ensure no double slashes if API_BASE ends with /
+      const baseUrl = API_BASE.endsWith('/') ? API_BASE.slice(0, -1) : API_BASE;
+      const res = await fetch(`${baseUrl}/media/${id}`, {
         method: 'DELETE',
         headers: { 'Accept': 'application/json' }
       });
@@ -314,9 +321,13 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
         if (cacheRef.current[cacheKey]) {
           cacheRef.current[cacheKey] = cacheRef.current[cacheKey].filter(m => m.id !== id);
         }
+      } else {
+        const error = await res.json();
+        alert(`Lỗi: ${error.message || 'Không thể xóa tệp'}`);
       }
     } catch (err) {
       console.error('Lỗi khi xóa tệp:', err);
+      alert('Lỗi kết nối máy chủ.');
     }
   };
 
@@ -355,12 +366,14 @@ export default function MediaPicker({ isOpen, onClose, onSelect, title = 'Chọn
           <div className="w-64 border-r border-slate-100 p-4 overflow-y-auto bg-slate-50/30 hidden md:block">
             <div className="flex items-center justify-between px-4 mb-4">
               <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Thư mục</p>
-              <button 
-                onClick={() => { setShowNewFolderInput(true); setFolderFormName(''); }}
-                className="size-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
-              >
-                <span className="material-symbols-outlined text-[16px]">create_new_folder</span>
-              </button>
+              {currentFolderDepth < 5 && (
+                <button 
+                  onClick={() => { setShowNewFolderInput(true); setFolderFormName(''); }}
+                  className="size-6 rounded-md bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">create_new_folder</span>
+                </button>
+              )}
             </div>
 
             {showNewFolderInput && (

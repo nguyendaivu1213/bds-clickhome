@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0f49bd;
+  --color-secondary: #7a7a7a;
+  --color-accent: #f1f1f1;
+  --font-sans: 'Manrope', sans-serif;
+  --radius-custom: 8px;
+}
+
+@layer utilities {
+  .project-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+  .footer-heading {
+    position: relative;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+  .footer-heading::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    height: 2px;
+    background-color: #fff;
+  }
+}

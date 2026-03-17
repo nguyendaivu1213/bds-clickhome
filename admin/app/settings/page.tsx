@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import MediaPicker from '@/app/components/MediaPicker';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1/admin';
 
@@ -22,12 +23,15 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   // Global settings state
   const [settings, setSettings] = useState<Record<string, any>>({
     site_name: 'ClickHomes Real Estate',
-    hotline: '1800 8888',
+    hotline: '1900 123456',
     support_email: 'support@clickhomes.vn',
+    address: '',
+    logo: '',
     dynamic_selections: []
   });
 
@@ -46,8 +50,10 @@ export default function SettingsPage() {
         const data = await res.json();
         setSettings({
           site_name: data.site_name || 'ClickHomes Real Estate',
-          hotline: data.hotline || '1800 8888',
+          hotline: data.hotline || '1900 123456',
           support_email: data.support_email || 'support@clickhomes.vn',
+          address: data.address || '',
+          logo: data.logo || '',
           dynamic_selections: data.dynamic_selections || []
         });
       }
@@ -249,10 +255,42 @@ export default function SettingsPage() {
               <div className="flex flex-col gap-2">
                  <label className="text-sm font-semibold text-slate-700">Logo Website</label>
                  <div className="flex items-center gap-4">
-                   <div className="size-16 rounded-lg border border-slate-200 flex items-center justify-center bg-slate-50">
-                      <span className="material-symbols-outlined text-slate-400 text-3xl">image</span>
+                   <div className="size-20 rounded-lg border border-slate-200 flex items-center justify-center bg-slate-50 overflow-hidden shadow-inner">
+                      {settings.logo ? (
+                        <img src={settings.logo} className="w-full h-full object-contain" alt="Logo" />
+                      ) : (
+                        <span className="material-symbols-outlined text-slate-300 text-3xl">image</span>
+                      )}
                    </div>
-                   <button className="h-10 px-4 rounded-lg bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors border border-slate-200">Thay đổi logo</button>
+                   <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setPickerOpen(true)}
+                        className="h-10 px-4 rounded-lg bg-slate-100 text-slate-700 font-semibold text-sm hover:bg-slate-200 transition-colors border border-slate-200 flex items-center gap-2"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">photo_library</span>
+                        Thay đổi logo
+                      </button>
+                      {settings.logo && (
+                        <button 
+                          onClick={() => setSettings({...settings, logo: ''})}
+                          className="h-10 px-4 rounded-lg bg-red-50 text-red-600 font-semibold text-sm hover:bg-red-100 transition-colors border border-red-100 flex items-center gap-2"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">hide_image</span>
+                          Xóa logo
+                        </button>
+                      )}
+                    </div>
+                    {settings.logo && (
+                      <input 
+                        type="text"
+                        className="w-full md:w-[400px] border border-slate-200 rounded-lg h-9 px-3 text-xs focus:ring-1 focus:ring-primary/20 focus:border-primary outline-none"
+                        value={settings.logo}
+                        onChange={e => setSettings({...settings, logo: e.target.value})}
+                        placeholder="URL logo..."
+                      />
+                    )}
+                   </div>
                  </div>
               </div>
 
@@ -275,6 +313,18 @@ export default function SettingsPage() {
                     onChange={e => setSettings({...settings, support_email: e.target.value})}
                   />
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-700">Địa Chỉ Văn Phòng</label>
+                <textarea
+                  rows={3}
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-slate-700 resize-none"
+                  placeholder="Vd: 123 Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh"
+                  value={settings.address}
+                  onChange={e => setSettings({...settings, address: e.target.value})}
+                />
+                <p className="text-xs text-slate-400">Địa chỉ này sẽ hiển thị ở phần Footer của website.</p>
               </div>
             </>
           )}
@@ -437,6 +487,16 @@ export default function SettingsPage() {
           {toast.message}
         </div>
       )}
+
+      <MediaPicker 
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={(url) => {
+          setSettings({ ...settings, logo: url });
+          setPickerOpen(false);
+        }}
+        title="Chọn Logo Website"
+      />
     </div>
   );
 }
