@@ -10,13 +10,13 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
   return (
     <div className="bg-white">
       {/* Sub Nav specifically for Project Detail */}
-      <ProjectSubNav />
+      <ProjectSubNav slug={params.slug} />
 
       {/* Hero Banner Section */}
       <section className="relative h-[80vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
-        <img 
-          src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-4.jpg" 
+        <img
+          src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-4.jpg"
           alt={title}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -41,12 +41,12 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
             <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Tổng quan dự án</h2>
             <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
           </div>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg" 
-                alt="Tổng quan" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg"
+                alt="Tổng quan"
                 className="w-full rounded-custom shadow-lg"
               />
             </div>
@@ -55,7 +55,7 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
               <p className="text-gray-600 mb-8 leading-relaxed text-[15px]">
                 Khu căn hộ compound (khép kín) cao cấp bậc nhất tại đại đô thị, mang đến đặc quyền riêng tư cho cộng đồng tinh hoa. Với triết lý kinh doanh "Khách hàng là trọng tâm", Masterise Homes kiến tạo nên một chuẩn mực sống quốc tế hoàn toàn mới tại Việt Nam.
               </p>
-              
+
               <ul className="space-y-4">
                 <li className="flex items-start border-b border-gray-100 pb-3">
                   <span className="w-40 flex-shrink-0 text-gray-500 font-medium">Chủ đầu tư:</span>
@@ -91,12 +91,12 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
             <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
           </div>
           <div className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15673.493902307519!2d106.8373!3d10.8443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317521a00ba8dddd%3A0xe54ef8f20bafda40!2sVinhomes%20Grand%20Park!5e0!3m2!1sen!2svn!4v1628131235123!5m2!1sen!2svn" 
-              width="100%" 
-              height="500" 
-              style={{ border: 0 }} 
-              allowFullScreen={true} 
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15673.493902307519!2d106.8373!3d10.8443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x317521a00ba8dddd%3A0xe54ef8f20bafda40!2sVinhomes%20Grand%20Park!5e0!3m2!1sen!2svn!4v1628131235123!5m2!1sen!2svn"
+              width="100%"
+              height="500"
+              style={{ border: 0 }}
+              allowFullScreen={true}
               loading="lazy"
             ></iframe>
           </div>
@@ -110,20 +110,20 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
             <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Mặt bằng & Layout</h2>
             <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="border border-gray-200 p-4 rounded-custom">
               <h3 className="text-center font-bold text-lg mb-4">Layout 2 Phòng Ngủ</h3>
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/apartment/img-3.jpg" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/apartment/img-3.jpg"
                 alt="Layout 2PN"
                 className="w-full cursor-pointer hover:opacity-90 transition-opacity"
               />
             </div>
             <div className="border border-gray-200 p-4 rounded-custom">
               <h3 className="text-center font-bold text-lg mb-4">Layout 3 Phòng Ngủ</h3>
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/apartment/img-4.jpg" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/apartment/img-4.jpg"
                 alt="Layout 3PN"
                 className="w-full cursor-pointer hover:opacity-90 transition-opacity"
               />
@@ -131,7 +131,7 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
           </div>
         </div>
       </section>
-      
+
       {/* 5. Tiến độ xây dựng */}
       <section id="tien-do" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
@@ -141,33 +141,33 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="group overflow-hidden rounded-custom shadow-sm">
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg"
                 className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                alt="Tiến độ 1" 
+                alt="Tiến độ 1"
                 onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400" }}
               />
             </div>
             <div className="group overflow-hidden rounded-custom shadow-sm">
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-2.jpg" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-2.jpg"
                 className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                 alt="Tiến độ 2"
-                onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400" }} 
+                onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400" }}
               />
             </div>
             <div className="group overflow-hidden rounded-custom shadow-sm">
-              <img 
-                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-3.jpg" 
+              <img
+                src="https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-3.jpg"
                 className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
-                alt="Tiến độ 3" 
+                alt="Tiến độ 3"
                 onError={(e) => { e.currentTarget.src = "https://placehold.co/600x400" }}
               />
             </div>
           </div>
         </div>
       </section>
-      
+
       {/* Other sections can continue to be added here based on requirement */}
       <div className="py-20 text-center text-gray-500 bg-white">
         <p>Còn nhiều phần như Ảnh 360, Chính sách, Thông tin sẽ được hiện thị ở đây và nạp động từ database/API.</p>
