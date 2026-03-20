@@ -61,10 +61,13 @@ export interface Project {
   translations: ProjectTranslation[];
   // Convenience fields from Translatable
   name?: string;
+  slogan?: string;
   short_description?: string | null;
+  overview_description?: string;
   location?: string | null;
   product_types?: string | null;
   handover_time?: string | null;
+  slide_images?: { image: string; title: string; image_url?: string }[];
 }
 
 export interface PaginatedResponse<T> {

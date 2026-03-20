@@ -55,6 +55,18 @@ class ProjectController extends Controller
             $project->perspective_image_url = null;
         }
 
+        // Transform slide_images URLs
+        if (is_array($project->slide_images)) {
+            $slides = $project->slide_images;
+            foreach ($slides as &$slide) {
+                if (isset($slide['image']) && $slide['image']) {
+                    $img = $slide['image'];
+                    $slide['image_url'] = (str_starts_with($img, 'http') ? $img : \Storage::disk('public')->url($img));
+                }
+            }
+            $project->setAttribute('slide_images', $slides);
+        }
+
         return response()->json($project);
     }
 }

@@ -21,13 +21,16 @@ export default function ProjectSectionPage({
 
     switch (section) {
         case "tong-quan":
-            const images = [
-                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg",
-                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg",
-                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/location/img-1.jpg",
-                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-4.jpg",
-                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
-            ];
+            const slideMedia = project?.slide_images || [];
+            const displayImages = slideMedia.length > 0
+                ? slideMedia.map(s => s.image_url || s.image)
+                : [
+                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg",
+                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg",
+                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/location/img-1.jpg",
+                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-4.jpg",
+                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
+                ];
 
             return (
                 <section className="py-16 bg-white min-h-screen border-t border-gray-100">
@@ -38,17 +41,17 @@ export default function ProjectSectionPage({
                                 <div className="space-y-4">
                                     <div className="overflow-hidden rounded-sm shadow-md aspect-video">
                                         <img
-                                            src={images[0]}
-                                            alt="Project Large"
+                                            src={displayImages[0]}
+                                            alt={projectName}
                                             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                                         />
                                     </div>
                                     <div className="grid grid-cols-4 gap-4">
-                                        {images.slice(1, 5).map((img, idx) => (
+                                        {displayImages.slice(1, 5).map((img, idx) => (
                                             <div key={idx} className="aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border border-gray-100 bg-gray-50">
                                                 <img
                                                     src={img}
-                                                    alt={`Project thumb ${idx + 1}`}
+                                                    alt={`${projectName} thumb ${idx + 1}`}
                                                     className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                                                 />
                                             </div>
