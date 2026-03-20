@@ -32,6 +32,15 @@ export default function ProjectSectionPage({
                     "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
                 ];
 
+            const [activeImage, setActiveImage] = useState<string | null>(null);
+
+            // Set initial active image when displayImages are loaded
+            useEffect(() => {
+                if (displayImages.length > 0 && !activeImage) {
+                    setActiveImage(displayImages[0]);
+                }
+            }, [displayImages, activeImage]);
+
             return (
                 <section className="py-16 bg-white min-h-screen border-t border-gray-100">
                     <div className="max-w-7xl mx-auto px-4">
@@ -39,20 +48,27 @@ export default function ProjectSectionPage({
                             {/* Left Column: Image Gallery */}
                             <div className="lg:col-span-6">
                                 <div className="space-y-4">
-                                    <div className="overflow-hidden rounded-sm shadow-md aspect-video">
+                                    <div className="overflow-hidden rounded-sm shadow-md aspect-video bg-gray-50">
                                         <img
-                                            src={displayImages[0]}
+                                            src={activeImage || displayImages[0]}
                                             alt={projectName}
-                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                            className="w-full h-full object-cover transition-all duration-500"
                                         />
                                     </div>
                                     <div className="grid grid-cols-4 gap-4">
-                                        {displayImages.slice(1, 5).map((img, idx) => (
-                                            <div key={idx} className="aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border border-gray-100 bg-gray-50">
+                                        {displayImages.slice(0, 4).map((img, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => setActiveImage(img)}
+                                                className={`aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border-2 transition-all ${(activeImage || displayImages[0]) === img
+                                                        ? "border-[#e2cb83] opacity-100 shadow-md"
+                                                        : "border-gray-100 opacity-60 hover:opacity-100"
+                                                    }`}
+                                            >
                                                 <img
                                                     src={img}
                                                     alt={`${projectName} thumb ${idx + 1}`}
-                                                    className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
                                         ))}
