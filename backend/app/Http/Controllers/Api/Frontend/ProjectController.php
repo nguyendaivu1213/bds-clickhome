@@ -47,6 +47,14 @@ class ProjectController extends Controller
         $project->setAttribute('slogan', $project->slogan);
         $project->setAttribute('short_description', $project->short_description);
 
+        // Append perspective_image_url
+        if ($project->perspective_image) {
+            $v = $project->perspective_image;
+            $project->perspective_image_url = (str_starts_with($v, 'http') ? $v : \Storage::disk('public')->url($v));
+        } else {
+            $project->perspective_image_url = null;
+        }
+
         return response()->json($project);
     }
 }
