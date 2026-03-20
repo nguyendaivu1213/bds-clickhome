@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function ProjectSubNav() {
+export default function ProjectSubNav({ slug }: { slug: string }) {
   const [isSticky, setIsSticky] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,39 +22,36 @@ export default function ProjectSubNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const navLinks = [
+    { name: "Tổng quan", path: "tong-quan" },
+    { name: "Vị trí", path: "vi-tri" },
+    { name: "Phân khu", path: "phan-khu" },
+    { name: "Layout", path: "layout" },
+    { name: "Ảnh 360", path: "anh-360" },
+    { name: "Tiến độ", path: "tien-do" },
+    { name: "Chính sách", path: "chinh-sach" },
+    { name: "Thông tin", path: "tin-tuc" },
+  ];
+
   return (
     <div className={`w-full bg-[#111] text-white transition-all z-40 ${isSticky ? 'fixed top-20 shadow-lg' : 'relative'}`}>
       <div className="max-w-7xl mx-auto px-4 overflow-x-auto no-scrollbar">
         <ul className="flex space-x-6 whitespace-nowrap text-[13px] font-bold uppercase tracking-wide py-4">
-          <li>
-            <Link href="/" className="hover:text-[#e2cb83] transition-colors flex items-center">
-              <i className="fas fa-home mr-2"></i> Trang chủ
-            </Link>
-          </li>
-          <li>
-            <a href="#tong-quan" className="text-[#e2cb83]">Tổng quan</a>
-          </li>
-          <li>
-            <a href="#vi-tri" className="hover:text-[#e2cb83] transition-colors">Vị trí</a>
-          </li>
-          <li>
-            <a href="#phan-khu" className="hover:text-[#e2cb83] transition-colors">Phân khu</a>
-          </li>
-          <li>
-            <a href="#layout" className="hover:text-[#e2cb83] transition-colors">Layout</a>
-          </li>
-          <li>
-            <a href="#anh-360" className="hover:text-[#e2cb83] transition-colors">Ảnh 360</a>
-          </li>
-          <li>
-            <a href="#tien-do" className="hover:text-[#e2cb83] transition-colors">Tiến độ</a>
-          </li>
-          <li>
-            <a href="#chinh-sach" className="hover:text-[#e2cb83] transition-colors">Chính sách</a>
-          </li>
-          <li>
-            <a href="#tin-tuc" className="hover:text-[#e2cb83] transition-colors">Thông tin</a>
-          </li>
+          {navLinks.map((link) => {
+            const href = `/du-an/${slug}/${link.path}`;
+            const isActive = pathname === href;
+
+            return (
+              <li key={link.path}>
+                <Link
+                  href={href}
+                  className={`transition-colors pb-1 ${isActive ? 'text-[#e2cb83] border-b-2 border-[#e2cb83]' : 'hover:text-[#e2cb83]'}`}
+                >
+                  {link.name}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

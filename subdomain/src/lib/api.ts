@@ -135,7 +135,7 @@ export async function fetchPosts(categorySlug?: string, perPage = 4): Promise<Po
   try {
     const params = new URLSearchParams({ per_page: String(perPage) });
     if (categorySlug) params.set('category_slug', categorySlug);
-    
+
     const res = await fetch(`${API_BASE}/public/posts?${params.toString()}`, {
       cache: 'no-store',
     });
@@ -169,11 +169,11 @@ export interface ProjectArticle {
 
 export async function fetchProjectArticles(investorId: number, perPage = 6): Promise<ProjectArticle[]> {
   try {
-    const params = new URLSearchParams({ 
+    const params = new URLSearchParams({
       per_page: String(perPage),
       investor_id: String(investorId)
     });
-    
+
     const res = await fetch(`${API_BASE}/public/project-articles?${params.toString()}`, {
       cache: 'no-store',
     });
@@ -182,5 +182,17 @@ export async function fetchProjectArticles(investorId: number, perPage = 6): Pro
     return json.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchProject(idOrSlug: string): Promise<Project | null> {
+  try {
+    const res = await fetch(`${API_BASE}/public/projects/${idOrSlug}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
 }

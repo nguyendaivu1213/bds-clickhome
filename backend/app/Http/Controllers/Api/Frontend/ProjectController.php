@@ -36,11 +36,16 @@ class ProjectController extends Controller
     public function show($id)
     {
         // Find by ID or Slug
-        $project = \App\Models\Project::with('translations', 'images')
+        $project = \App\Models\Project::with('translations')
             ->where(function ($query) use ($id) {
                 $query->where('id', $id)->orWhere('slug', $id);
             })
             ->firstOrFail();
+
+        // Ensure translated attributes are present for JSON
+        $project->setAttribute('name', $project->name);
+        $project->setAttribute('slogan', $project->slogan);
+        $project->setAttribute('short_description', $project->short_description);
 
         return response()->json($project);
     }
