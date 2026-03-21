@@ -36,10 +36,10 @@ export default function ProjectSectionPage({
 
             // Set initial active image when displayImages are loaded
             useEffect(() => {
-                if (displayImages.length > 0 && !activeImage) {
+                if (displayImages.length > 0) {
                     setActiveImage(displayImages[0]);
                 }
-            }, [displayImages, activeImage]);
+            }, [displayImages]);
 
             return (
                 <section className="py-16 bg-white min-h-screen border-t border-gray-100">
@@ -61,8 +61,8 @@ export default function ProjectSectionPage({
                                                 key={idx}
                                                 onClick={() => setActiveImage(img)}
                                                 className={`aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border-2 transition-all ${(activeImage || displayImages[0]) === img
-                                                        ? "border-[#e2cb83] opacity-100 shadow-md"
-                                                        : "border-gray-100 opacity-60 hover:opacity-100"
+                                                    ? "border-[#e2cb83] opacity-100 shadow-md"
+                                                    : "border-gray-100 opacity-60 hover:opacity-100"
                                                     }`}
                                             >
                                                 <img

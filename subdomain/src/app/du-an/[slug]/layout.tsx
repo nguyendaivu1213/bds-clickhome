@@ -30,24 +30,25 @@ export default function ProjectLayout({
             <ProjectSubNav slug={slug} />
 
             {/* Hero Banner Section */}
-            <section className="relative h-[60vh] md:h-[70vh] w-full flex items-center overflow-hidden">
-                <img
-                    src={project?.perspective_image_url || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-4.jpg"}
-                    alt={projectName}
-                    className="absolute inset-0 w-full h-full object-cover grayscale-[0.2]"
-                />
-                <div className="absolute inset-0 bg-black/10"></div>
-                <div className="relative z-20 max-w-7xl mx-auto px-4 w-full">
-                    <div className="bg-white/95 backdrop-blur-sm p-8 md:p-12 max-w-lg shadow-2xl rounded-sm border-t-4 border-[#e2cb83]">
-                        <h1 className="text-3xl md:text-4xl font-bold uppercase tracking-wider mb-6 text-gray-800 border-b border-gray-100 pb-4">
+            <section
+                className="relative w-full overflow-hidden"
+                style={{
+                    minHeight: '380px',
+                    backgroundImage: project?.perspective_image_url
+                        ? `url(${project.perspective_image_url})`
+                        : 'url(https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-4.jpg)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                }}
+            >
+                <div className="relative z-10 flex items-center min-h-[380px] max-w-7xl mx-auto px-8 py-12">
+                    <div className="bg-white/95 backdrop-blur-sm shadow-lg rounded-sm max-w-md p-8">
+                        <h1 className="text-xl font-bold text-gray-800 uppercase tracking-wide mb-4">
                             {projectName}
                         </h1>
-                        <p className="text-gray-600 leading-relaxed text-[15px] mb-8 italic">
+                        <p className="text-[14px] leading-relaxed text-gray-600">
                             {projectDesc}
                         </p>
-                        <button className="bg-[#e2cb83] hover:bg-[#d4be72] text-[#4d422a] font-bold py-3 px-8 rounded-sm transition-all uppercase tracking-wide text-xs shadow-md">
-                            Nhận bảng giá & Tài liệu
-                        </button>
                     </div>
                 </div>
             </section>
