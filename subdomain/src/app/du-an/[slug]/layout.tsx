@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import ProjectSubNav from "@/components/projects/ProjectSubNav";
+import { useSelectedLayoutSegments } from "next/navigation";
 import { fetchProject, Project } from "@/lib/api";
 
 export default function ProjectLayout({
@@ -21,15 +22,20 @@ export default function ProjectLayout({
             });
         }
     }, [slug]);
+    }, [slug]);
+
+    const segments = useSelectedLayoutSegments();
+    const section = segments[0];
+    const showBanner = section === "tong-quan" || !section;
 
     const projectName = project?.name || slug.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const projectDesc = project?.short_description || `${projectName} là tổ hợp căn hộ cao cấp, biệt thự, liền kề, shophouse, trường học nằm trong khu đô thị đẳng cấp. Lấy cảm hứng từ hình tượng thiên nhiên tinh khiết mang đến một cuộc sống an lành, ngập tràn hạnh phúc.`;
 
-    return (
         <div className="bg-white">
             <ProjectSubNav slug={slug} />
 
-            {/* Hero Banner Section */}
+            {/* Hero Banner Section - Only on tong-quan */}
+            {showBanner && (
             <section
                 className="relative w-full overflow-hidden"
                 style={{
@@ -51,7 +57,9 @@ export default function ProjectLayout({
                         </p>
                     </div>
                 </div>
+                </div>
             </section>
+            )}
 
             {children}
         </div>

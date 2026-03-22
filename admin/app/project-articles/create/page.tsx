@@ -14,6 +14,8 @@ export default function CreateProjectArticlePage() {
   const [formData, setFormData] = useState({
     project_id: "",
     type: "overview",
+    layout_type: "basic_image",
+    target_link: "",
     banner_image: "",
     status: "published",
     display_order: 0,
@@ -169,7 +171,7 @@ export default function CreateProjectArticlePage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-600 mb-1">Loại bài viết</label>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Chuyên mục hiển thị</label>
               <select 
                 name="type"
                 value={formData.type}
@@ -183,6 +185,33 @@ export default function CreateProjectArticlePage() {
                 <option value="policy">Chính sách</option>
                 <option value="progress">Tiến độ</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Loại giao diện</label>
+              <select 
+                name="layout_type"
+                value={formData.layout_type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="basic_image">Mặc định (Hình, Tóm tắt, Nội dung)</option>
+                <option value="location">Vị trí (Mã nhúng Map từ nội dung)</option>
+                <option value="horizontal_slide">Slide ngang (3 tấm hình)</option>
+                <option value="news_list">Danh sách tin</option>
+                <option value="price_list">Loại bảng giá</option>
+                <option value="floor_plan_slide">Slide mặt bằng/bản vẽ</option>
+                <option value="blue_background">Background blue</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Đường dẫn liên kết (khi bấm vào)</label>
+              <input 
+                name="target_link"
+                value={formData.target_link}
+                onChange={handleChange}
+                placeholder="VD: /du-an/vinhomes-vnn/vi-tri"
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-600 mb-1">Thứ tự hiển thị</label>

@@ -352,39 +352,21 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         value={formData.name}
                         onChange={(e) => handleInputChange("name", e.target.value)}
                       />
+                      {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.name}</p>}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
-                       <label className="text-sm font-bold text-slate-700">Danh mục chính</label>
+                       <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
                        <select 
                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
-                         value={formData.mainCategory}
-                         onChange={(e) => {
-                           handleInputChange("mainCategory", e.target.value);
-                           handleInputChange("subCategory", ""); // Reset sub category when main changes
-                         }}
+                         value={formData.investor}
+                         onChange={(e) => handleInputChange("investor", e.target.value)}
                        >
-                         <option value="">Chọn danh mục</option>
-                         {mainCategories.map(cat => (
-                           <option key={cat.id} value={cat.id}>{cat.title}</option>
+                         <option value="">Chọn chủ đầu tư</option>
+                         {investors.map(inv => (
+                           <option key={inv.id} value={inv.id}>{inv.name}</option>
                          ))}
                        </select>
                     </div>
-                    <div className="flex flex-col gap-2">
-                       <label className="text-sm font-bold text-slate-700">Danh mục phụ</label>
-                       <select 
-                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
-                         value={formData.subCategory}
-                         onChange={(e) => handleInputChange("subCategory", e.target.value)}
-                         disabled={!formData.mainCategory}
-                       >
-                         <option value="">Chọn danh mục</option>
-                         {subCategories.map(cat => (
-                           <option key={cat.id} value={cat.id}>{cat.title}</option>
-                         ))}
-                       </select>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -523,19 +505,6 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="space-y-6">
-                      <div className="flex flex-col gap-2">
-                         <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
-                         <select 
-                           className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none font-medium" 
-                           value={formData.investor} 
-                           onChange={(e) => handleInputChange("investor", e.target.value)}
-                         >
-                           <option value="">Chọn chủ đầu tư</option>
-                           {investors.map(inv => (
-                             <option key={inv.id} value={inv.id}>{inv.name}</option>
-                           ))}
-                         </select>
-                       </div>
                       <div className="flex flex-col gap-2">
                         <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
                         <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
@@ -1013,10 +982,11 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                 </div>
                 <div>
                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Đường dẫn dự án</label>
-                   <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 group">
+                   <div className={`flex items-center gap-2 bg-slate-50 p-3 rounded-xl border group transition-all ${errors.url ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-100'}`}>
                       <span className="text-slate-300 text-[10px] font-bold">/du-an/</span>
                       <input className="flex-1 bg-transparent border-none p-0 text-xs font-black text-primary placeholder:text-primary/20 focus:ring-0" placeholder="riverside-complex" value={formData.url} onChange={(e) => handleInputChange("url", e.target.value)} />
                    </div>
+                   {errors.url && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1">{errors.url}</p>}
                 </div>
              </div>
           </section>

@@ -20,6 +20,14 @@ class ProjectArticleController extends Controller
             $query->whereIn('project_id', $projectIds);
         }
 
+        if ($request->has('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->has('type')) {
+            $query->where('type', $request->type);
+        }
+
         $perPage = $request->query('per_page', 6);
         $articles = $query->latest()->paginate($perPage);
 

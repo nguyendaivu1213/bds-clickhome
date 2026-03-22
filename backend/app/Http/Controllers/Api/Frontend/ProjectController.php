@@ -38,7 +38,8 @@ class ProjectController extends Controller
         // Find by ID or Slug
         $project = \App\Models\Project::with('translations')
             ->where(function ($query) use ($id) {
-                $query->where('id', $id)->orWhere('slug', $id);
+                $query->where('projects.id', $id)
+                      ->orWhereTranslation('url', $id);
             })
             ->firstOrFail();
 

@@ -43,12 +43,16 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'url' => 'required|string|max:255',
+            'url' => 'required|string|max:255|unique:project_translations,url',
             'status' => 'nullable|string',
             'mainCategory' => 'nullable|integer',
             'investor' => 'nullable|integer',
             'order' => 'nullable|integer',
             'tags' => 'nullable|string',
+        ], [
+            'name.required' => 'Tên dự án không được để trống.',
+            'url.required' => 'Đường dẫn dự án không được để trống.',
+            'url.unique' => 'Đường dẫn dự án đã tồn tại, vui lòng chọn đường dẫn khác.',
         ]);
 
         $project = \App\Models\Project::create([
@@ -86,6 +90,10 @@ class ProjectController extends Controller
             'slide_images' => $request->slides,
             'amenities' => $request->amenities,
             'tags' => $request->tags,
+            'map_360_links' => $request->tour360,
+            'master_plan' => $request->masterPlan,
+            'other_layouts' => $request->unitLayouts,
+            'construction_progress' => $request->progressHistory,
         ]);
         
         $project->save();
@@ -101,6 +109,15 @@ class ProjectController extends Controller
     public function update(Request $request, string $id)
     {
         $project = \App\Models\Project::findOrFail($id);
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'url' => 'required|string|max:255|unique:project_translations,url,' . $id . ',project_id',
+        ], [
+            'name.required' => 'Tên dự án không được để trống.',
+            'url.required' => 'Đường dẫn dự án không được để trống.',
+            'url.unique' => 'Đường dẫn dự án đã tồn tại, vui lòng chọn đường dẫn khác.',
+        ]);
         
         $project->update([
             'investor_id' => $request->investor,
@@ -135,6 +152,10 @@ class ProjectController extends Controller
             'slide_images' => $request->slides,
             'amenities' => $request->amenities,
             'tags' => $request->tags,
+            'map_360_links' => $request->tour360,
+            'master_plan' => $request->masterPlan,
+            'other_layouts' => $request->unitLayouts,
+            'construction_progress' => $request->progressHistory,
         ];
 
         $project->translateOrNew('vi')->fill($data);

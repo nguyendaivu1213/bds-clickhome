@@ -49,6 +49,10 @@ export interface ProjectTranslation {
   product_types?: string | null;
   area?: string | null;
   handover_time?: string | null;
+  map_360_links?: { category: string; title: string; link: string }[];
+  master_plan?: { image: string; title: string; desc: string }[];
+  other_layouts?: { type: string; title: string; area: string; image: string }[];
+  construction_progress?: { image: string; title: string; desc: string; date: string }[];
 }
 
 export interface Project {
@@ -57,6 +61,7 @@ export interface Project {
   investor_id?: number;
   perspective_image?: string | null;
   perspective_image_url?: string | null;
+  google_map?: string | null;
   status: string;
   translations: ProjectTranslation[];
   // Convenience fields from Translatable
@@ -160,6 +165,8 @@ export interface ProjectArticle {
   id: number;
   project_id: number;
   type: string;
+  layout_type?: string | null;
+  target_link?: string | null;
   banner_image?: string | null;
   banner_image_url?: string | null;
   status: string;
@@ -188,6 +195,25 @@ export async function fetchProjectArticles(investorId: number, perPage = 6): Pro
   }
 }
 
+export async function fetchArticlesForProject(projectId: number, type?: string, perPage = 20): Promise<ProjectArticle[]> {
+  try {
+    const params = new URLSearchParams({
+      per_page: String(perPage),
+      project_id: String(projectId)
+    });
+    if (type) params.append('type', type);
+
+    const res = await fetch(`${API_BASE}/public/project-articles?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const json: PaginatedResponse<ProjectArticle> = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchProject(idOrSlug: string): Promise<Project | null> {
   try {
     const res = await fetch(`${API_BASE}/public/projects/${idOrSlug}`, {
@@ -197,5 +223,72 @@ export async function fetchProject(idOrSlug: string): Promise<Project | null> {
     return res.json();
   } catch {
     return null;
+  }
+}
+
+export interface ProjectZoneTranslation {
+  title: string;
+  page_title?: string | null;
+  slug?: string | null;
+}
+
+export interface ProjectZone {
+  id: number;
+  project_id: number;
+  parent_id?: number | null;
+  name?: string;
+  status: string;
+  display_order: number;
+  translations: ProjectZoneTranslation[];
+  // Convenience
+  title?: string;
+  slug?: string;
+  page_title?: string | null;
+  project?: Project;
+}
+
+export async function fetchProjectZones(projectId: number): Promise<ProjectZone[]> {
+  try {
+    const params = new URLSearchParams({ project_id: String(projectId) });
+    const res = await fetch(`${API_BASE}/public/zones?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const json: PaginatedResponse<ProjectZone> = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchZone(idOrSlug: string): Promise<ProjectZone | null> {
+  try {
+    const res = await fetch(`${API_BASE}/public/zones/${idOrSlug}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchZoneArticles(zoneId: number, type?: string, perPage = 20): Promise<ProjectArticle[]> {
+  try {
+    const params = new URLSearchParams({
+      per_page: String(perPage),
+      zone_id: String(zoneId)
+    });
+    if (type) params.append('type', type);
+
+    const res = await fetch(`${API_BASE}/public/zone-articles?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    // ZoneArticles have the same structure as ProjectArticles for the frontend UI components
+    const json: PaginatedResponse<ProjectArticle> = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
   }
 }

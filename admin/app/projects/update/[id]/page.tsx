@@ -53,6 +53,10 @@ export default function UpdateProjectPage() {
           googleMapLink: data.google_map || "",
           perspectiveImage: data.perspective_image || "",
           footerImage: data.footer_image || "",
+          tour360: vi?.map_360_links || [],
+          masterPlan: vi?.master_plan || [],
+          unitLayouts: vi?.other_layouts || [],
+          progressHistory: vi?.construction_progress || [],
         };
 
         setProject(transformedData);

@@ -14,6 +14,8 @@ export default function CreateZoneArticlePage() {
   const [formData, setFormData] = useState({
     zone_id: "",
     type: "overview",
+    layout_type: "default",
+    target_link: "",
     banner_image: "",
     status: "published",
     display_order: 0,
@@ -173,6 +175,32 @@ export default function CreateZoneArticlePage() {
                 <option value="progress">Tiến độ</option>
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Kiểu hiển thị (Layout)</label>
+              <select 
+                name="layout_type"
+                value={formData.layout_type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="default">Mặc định</option>
+                <option value="slider">Giao diện Slider</option>
+                <option value="grid">Giao diện Lưới</option>
+                <option value="link">Link tham chiếu (Tab Name)</option>
+              </select>
+            </div>
+            {formData.layout_type === "link" && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-600 mb-1">Key Tham Chiếu Link (Ví dụ: vi-tri)</label>
+                <input 
+                  name="target_link"
+                  value={formData.target_link}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+                  placeholder="vi-tri"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm font-semibold text-slate-600 mb-1">Thứ tự hiển thị</label>
               <input 

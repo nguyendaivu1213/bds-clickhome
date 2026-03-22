@@ -33,6 +33,8 @@ class ZoneArticleController extends Controller
             'type' => $request->type ?? 'article',
             'banner_image' => $request->banner_image,
             'status' => $request->status,
+            'layout_type' => $request->layout_type,
+            'target_link' => $request->target_link,
             'display_order' => $request->display_order ?? 0,
         ]);
 
@@ -68,6 +70,8 @@ class ZoneArticleController extends Controller
             'type' => $request->type ?? $article->type,
             'banner_image' => $request->banner_image,
             'status' => $request->status,
+            'layout_type' => $request->layout_type ?? $article->layout_type,
+            'target_link' => $request->target_link ?? $article->target_link,
             'display_order' => $request->display_order ?? $article->display_order,
         ]);
 

@@ -28,6 +28,12 @@ class Project extends Model implements TranslatableContract
         'amenities', 'handover_standards', 'images', 'videos', 'construction_progress', 'tags'
     ];
 
+    protected $appends = ['slug'];
+
+    public function getSlugAttribute() {
+        return $this->url;
+    }
+
     public function site()
     {
         return $this->belongsTo(Site::class);

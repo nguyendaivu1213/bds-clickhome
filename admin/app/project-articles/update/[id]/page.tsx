@@ -16,6 +16,8 @@ export default function UpdateProjectArticlePage({ params }: { params: Promise<{
   const [formData, setFormData] = useState({
     project_id: "",
     type: "overview",
+    layout_type: "basic_image",
+    target_link: "",
     banner_image: "",
     status: "published",
     display_order: 0,
@@ -40,6 +42,8 @@ export default function UpdateProjectArticlePage({ params }: { params: Promise<{
         setFormData({
           project_id: articleData.project_id?.toString() || "",
           type: articleData.type || "overview",
+          layout_type: articleData.layout_type || "basic_image",
+          target_link: articleData.target_link || "",
           banner_image: articleData.banner_image || "",
           status: articleData.status || "published",
           display_order: articleData.display_order || 0,
@@ -190,7 +194,7 @@ export default function UpdateProjectArticlePage({ params }: { params: Promise<{
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-slate-600 mb-1">Loại bài viết</label>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Chuyên mục hiển thị</label>
               <select 
                 name="type"
                 value={formData.type}
@@ -204,6 +208,33 @@ export default function UpdateProjectArticlePage({ params }: { params: Promise<{
                 <option value="policy">Chính sách</option>
                 <option value="progress">Tiến độ</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Loại giao diện</label>
+              <select 
+                name="layout_type"
+                value={formData.layout_type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="basic_image">Mặc định (Hình, Tóm tắt, Nội dung)</option>
+                <option value="location">Vị trí (Mã nhúng Map từ nội dung)</option>
+                <option value="horizontal_slide">Slide ngang (3 tấm hình)</option>
+                <option value="news_list">Danh sách tin</option>
+                <option value="price_list">Loại bảng giá</option>
+                <option value="floor_plan_slide">Slide mặt bằng/bản vẽ</option>
+                <option value="blue_background">Background blue</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Đường dẫn liên kết (khi bấm vào)</label>
+              <input 
+                name="target_link"
+                value={formData.target_link}
+                onChange={handleChange}
+                placeholder="VD: /du-an/vinhomes-vnn/vi-tri"
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-slate-600 mb-1">Thứ tự hiển thị</label>

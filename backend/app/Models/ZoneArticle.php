@@ -11,7 +11,7 @@ class ZoneArticle extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'zone_id', 'type', 'banner_image', 'status', 'display_order'
+        'zone_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
     ];
 
     public $translatedAttributes = [

@@ -31,6 +31,8 @@ class ProjectArticleController extends Controller
         $article = ProjectArticle::create([
             'project_id' => $request->project_id,
             'type' => $request->type ?? 'article',
+            'layout_type' => $request->layout_type,
+            'target_link' => $request->target_link,
             'banner_image' => $request->banner_image,
             'status' => $request->status,
             'display_order' => $request->display_order ?? 0,
@@ -67,6 +69,8 @@ class ProjectArticleController extends Controller
         $article->update([
             'project_id' => $request->project_id,
             'type' => $request->type ?? $article->type,
+            'layout_type' => $request->layout_type ?? $article->layout_type,
+            'target_link' => $request->target_link ?? $article->target_link,
             'banner_image' => $request->banner_image,
             'status' => $request->status,
             'display_order' => $request->display_order ?? $article->display_order,
