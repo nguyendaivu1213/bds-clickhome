@@ -46,6 +46,8 @@ export default function ProjectSectionPage({
     }, [slug, section]);
 
     const projectName = project?.name || slug.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    // Shared translation object used across multiple cases
+    const translation = (project?.translations?.[0] as any);
 
     switch (section) {
         case "tong-quan":
@@ -238,7 +240,6 @@ export default function ProjectSectionPage({
                 </section>
             );
         case "layout":
-            const translation = project?.translations?.[0] as any;
             const masterPlans = translation?.master_plan || [];
             const unitLayouts = translation?.other_layouts || [];
 
@@ -357,7 +358,7 @@ export default function ProjectSectionPage({
                 </section>
             );
         case "anh-360":
-            const tourLinks = (project?.translations?.[0] as any)?.map_360_links || [];
+            const tourLinks = translation?.map_360_links || [];
 
             return (
                 <section className="py-20 bg-gray-50 min-h-screen">
