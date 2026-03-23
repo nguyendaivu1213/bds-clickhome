@@ -33,6 +33,14 @@ export default function ProjectSectionPage({
                 if (section === "phan-khu") {
                     fetchProjectZones(data.id).then(setZones);
                 }
+
+                // Auto-select first 360 link when visiting anh-360 tab
+                if (section === "anh-360") {
+                    const t = (data.translations?.[0] as any)?.map_360_links || [];
+                    if (t.length > 0) {
+                        setActive360(t[0].link);
+                    }
+                }
             }
         });
     }, [slug, section]);
@@ -349,11 +357,7 @@ export default function ProjectSectionPage({
                 </section>
             );
         case "anh-360":
-            const tourLinks = translation?.map_360_links || [];
-            // Auto select first tour if none selected and there are tours
-            if (!active360 && tourLinks.length > 0) {
-                setActive360(tourLinks[0].link);
-            }
+            const tourLinks = (project?.translations?.[0] as any)?.map_360_links || [];
 
             return (
                 <section className="py-20 bg-gray-50 min-h-screen">
