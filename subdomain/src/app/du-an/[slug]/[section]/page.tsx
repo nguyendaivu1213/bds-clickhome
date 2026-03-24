@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { fetchProject, fetchArticlesForProject, fetchProjectZones, Project, ProjectArticle, ProjectZone } from "@/lib/api";
 import DynamicArticleRenderer from "@/components/articles/DynamicArticleRenderer";
@@ -15,6 +15,27 @@ export default function ProjectSectionPage({
     const [articles, setArticles] = useState<ProjectArticle[]>([]);
     const [zones, setZones] = useState<ProjectZone[]>([]);
     const [active360, setActive360] = useState<string | null>(null);
+    const [activeImage, setActiveImage] = useState<string | null>(null);
+
+    const displayImages = useMemo(() => {
+        const slideMedia = project?.slide_images || [];
+        return slideMedia.length > 0
+            ? slideMedia.map(s => s.image_url || ((s as any).image))
+            : [
+                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg",
+                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg",
+                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/location/img-1.jpg",
+                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-4.jpg",
+                "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
+            ];
+    }, [project]);
+
+    // Set initial active image when displayImages are loaded
+    useEffect(() => {
+        if (displayImages.length > 0) {
+            setActiveImage(displayImages[0]);
+        }
+    }, [displayImages]);
 
     useEffect(() => {
         fetchProject(slug).then((data) => {
@@ -51,25 +72,6 @@ export default function ProjectSectionPage({
 
     switch (section) {
         case "tong-quan":
-            const slideMedia = project?.slide_images || [];
-            const displayImages = slideMedia.length > 0
-                ? slideMedia.map(s => s.image_url || s.image)
-                : [
-                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg",
-                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg",
-                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/location/img-1.jpg",
-                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-4.jpg",
-                    "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
-                ];
-
-            const [activeImage, setActiveImage] = useState<string | null>(null);
-
-            // Set initial active image when displayImages are loaded
-            useEffect(() => {
-                if (displayImages.length > 0) {
-                    setActiveImage(displayImages[0]);
-                }
-            }, [displayImages]);
 
             return (
                 <>
@@ -87,7 +89,7 @@ export default function ProjectSectionPage({
                                         />
                                     </div>
                                     <div className="grid grid-cols-4 gap-4">
-                                        {displayImages.slice(0, 4).map((img, idx) => (
+                                        {displayImages.map((img, idx) => (
                                             <div
                                                 key={idx}
                                                 onClick={() => setActiveImage(img)}
