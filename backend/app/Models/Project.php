@@ -13,7 +13,7 @@ class Project extends Model implements TranslatableContract
     protected $fillable = [
         'site_id', 'investor_id', 'primary_category_id', 
         'perspective_image', 'footer_image', 'publish_date', 
-        'google_map', 'location_image', 
+        'google_map', 'latitude', 'longitude', 'location_image', 
         'sample_apartment_360', 'living_room_360', 'bedroom_360', 'balcony_360', 'amenities_360',
         'contact_email', 'contact_phone', 'status', 'is_published', 'display_order'
     ];
@@ -21,7 +21,7 @@ class Project extends Model implements TranslatableContract
     public $translatedAttributes = [
         'name', 'slogan', 'short_description', 'overview_description', 
         'url', 'page_title', 'meta_description', 'meta_keywords', 'header_tag', 
-        'location', 'scale', 'product_types', 'design', 'apartment_types', 
+        'location', 'location_strengths', 'real_photos', 'connections', 'scale', 'product_types', 'design', 'apartment_types', 
         'area', 'handover_time', 'legal_status', 'html_content', 'location_content', 
         'slide_images', 'map_360_links', 'master_plan', 'zone_planning', 'building_locations', 
         'studio_layouts', '1br_layouts', '2br_layouts', '3br_layouts', 'duplex_layouts', 'other_layouts', 

@@ -10,7 +10,7 @@ class ProjectTranslation extends Model
     protected $fillable = [
         'name', 'slogan', 'short_description', 'overview_description', 
         'url', 'page_title', 'meta_description', 'meta_keywords', 'header_tag', 
-        'location', 'scale', 'product_types', 'design', 'apartment_types', 
+        'location', 'location_strengths', 'real_photos', 'connections', 'scale', 'product_types', 'design', 'apartment_types', 
         'area', 'handover_time', 'legal_status', 'html_content', 'location_content', 
         'slide_images', 'map_360_links', 'master_plan', 'zone_planning', 'building_locations', 
         'studio_layouts', '1br_layouts', '2br_layouts', '3br_layouts', 'duplex_layouts', 'other_layouts', 
@@ -19,6 +19,8 @@ class ProjectTranslation extends Model
 
     protected $casts = [
         'slide_images' => 'json',
+        'real_photos' => 'json',
+        'connections' => 'json',
         'map_360_links' => 'json',
         'master_plan' => 'json',
         'zone_planning' => 'json',
