@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -582,33 +582,110 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                                  className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
                                  placeholder="https://www.google.com/maps/@lat,lng,15z ..."
                                  value={formData.googleMapLink || ""}
-                                  onChange={(e) => {
-                                     const url = e.target.value;
-                                     handleInputChange("googleMapLink", url);
-                                     
-                                     let lat, lng;
-                                     const m1 = url.match(/@(-?[\d.]+),(-?[\d.]+)/);
-                                     if (m1) { lat = m1[1]; lng = m1[2]; }
-                                     
-                                     if (!lat || !lng) {
-                                       const m2 = url.match(/!3d(-?[\d.]+)!4d(-?[\d.]+)/);
-                                       if (m2) { lat = m2[1]; lng = m2[2]; }
-                                     }
-                                     
-                                     if (!lat || !lng) {
-                                       const m3 = url.match(/[?&]q=(-?[\d.]+),(-?[\d.]+)/);
-                                       if (m3) { lat = m3[1]; lng = m3[2]; }
-                                     }
+                                 onChange={(e) => {
+                                    const url = e.target.value;
+                                    handleInputChange("googleMapLink", url);
+                                    
+                                    let lat, lng;
+                                    const m1 = url.match(/@(-?[\d.]+),(-?[\d.]+)/);
+                                    if (m1) { lat = m1[1]; lng = m1[2]; }
+                                    
+                                    if (!lat || !lng) {
+                                      const m2 = url.match(/!3d(-?[\d.]+)!4d(-?[\d.]+)/);
+                                      if (m2) { lat = m2[1]; lng = m2[2]; }
+                                    }
+                                    
+                                    if (!lat || !lng) {
+                                      const m3 = url.match(/[?&]q=(-?[\d.]+),(-?[\d.]+)/);
+                                      if (m3) { lat = m3[1]; lng = m3[2]; }
+                                    }
 
-                                     if (lat && lng) { 
-                                       handleInputChange("latitude", lat); 
-                                       handleInputChange("longitude", lng); 
-                                     }
-                                  }}
+                                    if (lat && lng) { 
+                                      handleInputChange("latitude", lat); 
+                                      handleInputChange("longitude", lng); 
+                                    }
+                                 }}
+                              />
+                              {formData.googleMapLink && (
+                                 <a href={formData.googleMapLink} target="_blank" rel="noopener noreferrer"
+                                    className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Mở Google Maps">
+                                    <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                                 </a>
+                              )}
+                           </div>
+                           <p className="text-[10px] text-slate-400">Dán link từ Google Maps. Hệ thống sẽ tự điền tọa độ và hiển thị bản đồ.</p>
+                        </div>
+                        <div className="aspect-video w-full bg-slate-100 relative">
+                           {formData.latitude && formData.longitude ? (
+                              <iframe
+                                 src={`https://maps.google.com/maps?q=${formData.latitude},${formData.longitude}&z=15&output=embed`}
+                                 className="w-full h-full border-none"
+                                 allowFullScreen
+                                 loading="lazy"
+                              />
+                           ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                                 <span className="material-symbols-outlined text-6xl text-slate-200">map</span>
+                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Nhập link Google Maps để xem preview</p>
+                              </div>
+                           )}
+                        </div>
+                        {/* Hidden Latitude and Longitude */}
+                        <div className="hidden">
+                           <input value={formData.latitude} readOnly />
+                           <input value={formData.longitude} readOnly />
+                        </div>
+                     </div>
+                  </div>
+                  <div className="lg:col-span-12 space-y-8">
+                     <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
+                        <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium min-h-[120px]" placeholder="Mô tả thế mạnh vị trí..." value={formData.locationStrengths} onChange={(e) => handleInputChange("locationStrengths", e.target.value)} />
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                           <div className="flex justify-between items-center">
+                              <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">image</span> Ảnh thực tế</h3>
+                              <button type="button" onClick={() => handleInputChange("realPhotos", [...formData.realPhotos, ""])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm</button>
+                           </div>
+                           <div className="grid grid-cols-2 gap-3">
+                              {formData.realPhotos.map((photo: string, idx: number) => (
+                                 <div key={idx} className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 group overflow-hidden cursor-pointer" onClick={() => openMediaPicker(`realPhotos.${idx}`)}>
+                                    {photo ? <img src={photo} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-200">add</span>}
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleInputChange("realPhotos", formData.realPhotos.filter((_: any, i: number) => i !== idx)); }} className="absolute top-2 right-2 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="material-symbols-outlined text-[12px]">close</span></button>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 space-y-6">
+                           <h3 className="font-bold text-primary flex items-center gap-2"><span className="material-symbols-outlined">commute</span> Kết nối vùng</h3>
+                           <div className="space-y-4">
+                              {formData.connections.map((conn: any, idx: number) => (
+                                 <div key={idx} className="bg-white p-4 rounded-2xl border border-primary/10 shadow-sm flex items-center gap-4 group">
+                                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined">{conn.icon || "location_on"}</span></div>
+                                    <div className="flex-1">
+                                       <input className="w-full border-none p-0 text-xs font-black text-slate-700 bg-transparent focus:ring-0" value={conn.title} onChange={(e) => {
+                                          const newConn = [...formData.connections];
+                                          newConn[idx].title = e.target.value;
+                                          handleInputChange("connections", newConn);
+                                       }} />
+                                       <input className="w-full border-none p-0 text-[10px] font-bold text-slate-400 bg-transparent focus:ring-0" value={conn.duration} onChange={(e) => {
+                                          const newConn = [...formData.connections];
+                                          newConn[idx].duration = e.target.value;
+                                          handleInputChange("connections", newConn);
+                                       }} />
+                                    </div>
+                                    <button type="button" onClick={() => handleInputChange("connections", formData.connections.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
+                                 </div>
+                              ))}
+                              <button type="button" onClick={() => handleInputChange("connections", [...formData.connections, { icon: "commute", title: "Điểm đến mới", duration: "10 phút" }])} className="w-full py-3 border-2 border-dashed border-primary/20 rounded-2xl text-primary text-[10px] font-black uppercase tracking-widest">+ Thêm kết nối</button>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
                </div>
             </div>
           )}
-
           {activeTab === "amenities" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                <div className="flex justify-between items-center">
@@ -630,6 +707,16 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                                handleInputChange("amenities", newAm);
                              }} />
                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="size-4 rounded border-slate-200 text-primary focus:ring-primary" checked={item.isHighlight} onChange={(e) => {
+                                  const newAm = [...formData.amenities];
+                                  newAm[idx].isHighlight = e.target.checked;
+                                  handleInputChange("amenities", newAm);
+                                }} />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nổi bật</span>
+                             </label>
+                          </div>
+                          <textarea className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 focus:ring-0 min-h-[40px] resize-none" placeholder="Mô tả ngắn..." value={item.desc} onChange={(e) => {
+                               const newAm = [...formData.amenities];
                                newAm[idx].desc = e.target.value;
                                handleInputChange("amenities", newAm);
                              }} />

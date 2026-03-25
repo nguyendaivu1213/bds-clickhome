@@ -201,6 +201,7 @@ export default function CreateProjectArticlePage() {
                 <option value="price_list">Loại bảng giá</option>
                 <option value="floor_plan_slide">Slide mặt bằng/bản vẽ</option>
                 <option value="blue_background">Background blue</option>
+                <option value="full_image">Hình ảnh lớn (Full Image)</option>
               </select>
             </div>
             <div>

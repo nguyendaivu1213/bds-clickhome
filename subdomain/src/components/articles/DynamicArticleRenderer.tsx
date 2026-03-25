@@ -159,6 +159,36 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
         </section>
       );
 
+    case "full_image":
+      return (
+        <section className="py-20 bg-white">
+          <div className="w-full">
+            <div className="text-center mb-12 max-w-7xl mx-auto px-4">
+              <h2 className="text-3xl md:text-5xl font-bold text-gray-800 uppercase tracking-wide mb-6">{title}</h2>
+              {summary && <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">{summary}</p>}
+            </div>
+            
+            <LinkWrapper className="block w-full">
+              {article.banner_image_url && (
+                <div className="w-full relative">
+                  <img src={article.banner_image_url} className="w-full h-auto object-cover" alt={title} />
+                </div>
+              )}
+              {html_content && (
+                <div className="max-w-7xl mx-auto px-4 mt-12">
+                  <div className="prose prose-slate max-w-none text-gray-700 leading-loose text-lg" dangerouslySetInnerHTML={{ __html: html_content }} />
+                </div>
+              )}
+              {targetLink && (
+                  <div className="text-center mt-12">
+                      <span className="inline-block px-10 py-4 bg-primary text-white font-bold rounded-full shadow-lg hover:bg-primary-dark transition-colors">Xem chi tiết</span>
+                  </div>
+              )}
+            </LinkWrapper>
+          </div>
+        </section>
+      );
+
     case "basic_image":
     default:
       return (

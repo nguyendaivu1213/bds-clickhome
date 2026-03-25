@@ -15,6 +15,7 @@ export default function ProjectSectionPage({
     const [articles, setArticles] = useState<ProjectArticle[]>([]);
     const [zones, setZones] = useState<ProjectZone[]>([]);
     const [active360, setActive360] = useState<string | null>(null);
+    const [activeSlideImage, setActiveSlideImage] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProject(slug).then((data) => {
@@ -29,7 +30,7 @@ export default function ProjectSectionPage({
                     "layout": "design",
                 };
                 fetchArticlesForProject(data.id, sectionToTypeMap[section] || section).then(setArticles);
-                
+
                 if (section === "phan-khu") {
                     fetchProjectZones(data.id).then(setZones);
                 }
@@ -62,140 +63,200 @@ export default function ProjectSectionPage({
                     "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-3.jpg",
                 ];
 
-            const [activeImage, setActiveImage] = useState<string | null>(null);
-
-            // Set initial active image when displayImages are loaded
-            useEffect(() => {
-                if (displayImages.length > 0) {
-                    setActiveImage(displayImages[0]);
-                }
-            }, [displayImages]);
-
             return (
                 <>
-                <section className="py-16 bg-white min-h-screen border-t border-gray-100">
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                            {/* Left Column: Image Gallery */}
-                            <div className="lg:col-span-6">
-                                <div className="space-y-4">
-                                    <div className="overflow-hidden rounded-sm shadow-md aspect-video bg-gray-50">
-                                        <img
-                                            src={activeImage || displayImages[0]}
-                                            alt={projectName}
-                                            className="w-full h-full object-cover transition-all duration-500"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-4">
-                                        {displayImages.slice(0, 4).map((img, idx) => (
-                                            <div
-                                                key={idx}
-                                                onClick={() => setActiveImage(img)}
-                                                className={`aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border-2 transition-all ${(activeImage || displayImages[0]) === img
-                                                    ? "border-[#e2cb83] opacity-100 shadow-md"
-                                                    : "border-gray-100 opacity-60 hover:opacity-100"
-                                                    }`}
-                                            >
-                                                <img
-                                                    src={img}
-                                                    alt={`${projectName} thumb ${idx + 1}`}
-                                                    className="w-full h-full object-cover"
-                                                />
+                    <section className="py-10 bg-white border-t border-gray-100">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                                {/* Left Column: Image Gallery */}
+                                <div className="lg:col-span-6">
+                                    <div className="space-y-4">
+                                        <div className="overflow-hidden rounded-sm shadow-md aspect-video bg-gray-50">
+                                            <img
+                                                src={activeSlideImage || displayImages[0]}
+                                                alt={projectName}
+                                                className="w-full h-full object-cover transition-all duration-500"
+                                            />
+                                        </div>
+                                        {displayImages.length > 1 && (
+                                            <div className="grid grid-cols-4 gap-4">
+                                                {displayImages.slice(0, 8).map((img, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        onClick={() => setActiveSlideImage(img)}
+                                                        className={`aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border-2 transition-all ${(activeSlideImage || displayImages[0]) === img
+                                                            ? "border-[#e2cb83] opacity-100 shadow-md"
+                                                            : "border-gray-100 opacity-60 hover:opacity-100"
+                                                            }`}
+                                                    >
+                                                        <img
+                                                            src={img}
+                                                            alt={`${projectName} thumb ${idx + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Right Column: Detailed Info */}
-                            <div className="lg:col-span-6">
-                                <h2 className="text-3xl font-bold mb-8 text-gray-800 uppercase tracking-tight leading-tight">
-                                    TỔNG QUAN DỰ ÁN <br />
-                                    <span className="text-[#e2cb83]">{projectName}</span>
-                                </h2>
+                                {/* Right Column: Detailed Info */}
+                                <div className="lg:col-span-6">
+                                    <h2 className="text-3xl font-bold mb-8 text-gray-800 uppercase tracking-tight leading-tight">
+                                        TỔNG QUAN DỰ ÁN <br />
+                                        <span className="text-[#e2cb83]">{projectName}</span>
+                                    </h2>
 
-                                <div className="space-y-5 text-[15px]">
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Chủ đầu tư:</span>
-                                        <span className="text-gray-600">Công ty Cổ phần Đầu Tư Và Phát Triển Đô Thị Sài Đồng (Thành viên của Vingroup)</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Tổng diện tích đất dự án:</span>
-                                        <span className="text-gray-600">17.6 ha</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Mật độ xây dựng:</span>
-                                        <span className="text-gray-600">31%</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Quy mô phát triển:</span>
-                                        <span className="text-gray-600">3 tòa căn hộ & 364 căn nhà ở thấp tầng</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 h-auto text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Loại hình phát triển:</span>
-                                        <span className="text-gray-600">
-                                            Cao tầng (The Arcadia): 1PN, 2PN, 3PN, 4PN, Duplex <br />
-                                            Thấp tầng (The Botanica): Biệt thự đơn lập, biệt thụ song lập, liền kề, shophouse
-                                        </span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm khởi công:</span>
-                                        <span className="text-gray-600">Năm 2015</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm bàn giao:</span>
-                                        <span className="text-gray-600">Tháng 11/2017</span>
-                                    </div>
-                                    <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                        <span className="w-48 flex-shrink-0 font-bold text-gray-700">Hình thức sở hữu:</span>
-                                        <span className="text-gray-600 font-medium font-bold">Sổ đỏ lâu dài</span>
+                                    <div className="space-y-5 text-[15px]">
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Chủ đầu tư:</span>
+                                            <span className="text-gray-600">Công ty Cổ phần Đầu Tư Và Phát Triển Đô Thị Sài Đồng (Thành viên của Vingroup)</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Tổng diện tích đất dự án:</span>
+                                            <span className="text-gray-600">17.6 ha</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Mật độ xây dựng:</span>
+                                            <span className="text-gray-600">31%</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Quy mô phát triển:</span>
+                                            <span className="text-gray-600">3 tòa căn hộ & 364 căn nhà ở thấp tầng</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 h-auto text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Loại hình phát triển:</span>
+                                            <span className="text-gray-600">
+                                                Cao tầng (The Arcadia): 1PN, 2PN, 3PN, 4PN, Duplex <br />
+                                                Thấp tầng (The Botanica): Biệt thự đơn lập, biệt thụ song lập, liền kề, shophouse
+                                            </span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm khởi công:</span>
+                                            <span className="text-gray-600">Năm 2015</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm bàn giao:</span>
+                                            <span className="text-gray-600">Tháng 11/2017</span>
+                                        </div>
+                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
+                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Hình thức sở hữu:</span>
+                                            <span className="text-gray-600 font-medium font-bold">Sổ đỏ lâu dài</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
-                
-                {/* Dynamically Loaded Project Articles for this section */}
-                {articles.length > 0 && (
-                    <div className="dynamic-articles-container">
-                        {articles.map(article => (
-                            <DynamicArticleRenderer key={article.id} article={article} />
-                        ))}
-                    </div>
-                )}
+                    </section>
+
+                    {/* Dynamically Loaded Project Articles for this section */}
+                    {articles.length > 0 && (
+                        <div className="dynamic-articles-container mt-1">
+                            {articles.map(article => {
+                                const trans = article.translations?.[0] || {};
+                                return (
+                                    <div key={article.id} className="w-full space-y-10 mb-20">
+                                        {article.banner_image_url && (
+                                            <div className="w-full h-[50vh] md:h-[70vh] relative">
+                                                <img
+                                                    src={article.banner_image_url}
+                                                    className="w-full h-full object-cover"
+                                                    alt={trans.title || "Tổng quan dự án"}
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="max-w-7xl mx-auto px-4">
+                                            <div className="w-full">
+                                                {trans.summary && (
+                                                    <div className="text-2xl font-bold text-gray-800 mb-8 leading-relaxed border-l-4 border-[#e2cb83] pl-6 py-2">
+                                                        {trans.summary}
+                                                    </div>
+                                                )}
+                                                {trans.html_content && (
+                                                    <div
+                                                        dangerouslySetInnerHTML={{ __html: trans.html_content }}
+                                                        className="prose prose-slate max-w-none text-gray-700 leading-loose text-xl [&>p]:mb-8 [&>strong]:text-gray-900"
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </>
             );
         case "vi-tri":
             return (
                 <>
-                <section className="py-20 bg-gray-50">
-                    <div className="max-w-7xl mx-auto px-4">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Vị trí đắc địa</h2>
-                            <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
-                        </div>
-                        {project?.google_map ? (
-                            <div 
-                                className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md [&>iframe]:w-full [&>iframe]:h-[500px]"
-                                dangerouslySetInnerHTML={{ __html: project.google_map }}
-                            />
-                        ) : (
-                            <div className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md bg-gray-200 flex items-center justify-center h-[500px]">
-                                <p className="text-gray-500 font-medium">Bản đồ đang được cập nhật</p>
+                    <section className="py-20 bg-gray-50">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="text-center mb-16">
+                                <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Vị trí đắc địa</h2>
+                                <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
                             </div>
-                        )}
-                    </div>
-                </section>
-                
-                {/* Dynamically Loaded Project Articles for this section */}
-                {articles.length > 0 && (
-                    <div className="dynamic-articles-container">
-                        {articles.map(article => (
-                            <DynamicArticleRenderer key={article.id} article={article} />
-                        ))}
-                    </div>
-                )}
+                            {project?.latitude && project?.longitude ? (
+                                <div className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md h-[500px]">
+                                    <iframe
+                                        src={`https://maps.google.com/maps?q=${project.latitude},${project.longitude}&z=15&output=embed`}
+                                        title="Google Map"
+                                        className="w-full h-full border-none"
+                                        allowFullScreen
+                                        loading="lazy"
+                                    />
+                                </div>
+                            ) : project?.google_map && project.google_map.includes("<iframe") ? (
+                                <div
+                                    className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md [&>iframe]:w-full [&>iframe]:h-[500px]"
+                                    dangerouslySetInnerHTML={{ __html: project.google_map }}
+                                />
+                            ) : (
+                                <div className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md bg-gray-200 flex items-center justify-center h-[500px]">
+                                    <p className="text-gray-500 font-medium">Bản đồ đang được cập nhật</p>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Dynamically Loaded Project Articles for this section */}
+                    {articles.length > 0 && (
+                        <div className="dynamic-articles-container">
+                            {articles.map(article => {
+                                if (section === "vi-tri") {
+                                    const trans = article.translations?.[0] || {};
+                                    return (
+                                        <div key={article.id} className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+                                            <div className="w-full">
+                                                {trans.summary && (
+                                                    <div className="text-xl font-bold text-gray-800 mb-6 leading-relaxed border-l-4 border-[#e2cb83] pl-6 py-2">
+                                                        {trans.summary}
+                                                    </div>
+                                                )}
+                                                {trans.html_content && (
+                                                    <div
+                                                        dangerouslySetInnerHTML={{ __html: trans.html_content }}
+                                                        className="prose prose-slate max-w-none text-gray-600 leading-[1.8] text-lg [&>p]:mb-6 [&>strong]:text-gray-900"
+                                                    />
+                                                )}
+                                            </div>
+                                            {article.banner_image_url && (
+                                                <div className="w-full h-auto rounded-custom overflow-hidden shadow-2xl mt-12">
+                                                    <img
+                                                        src={article.banner_image_url}
+                                                        className="w-full h-auto object-cover"
+                                                        alt="Vị trí"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+                                return <DynamicArticleRenderer key={article.id} article={article} />;
+                            })}
+                        </div>
+                    )}
                 </>
             );
         case "phan-khu":
@@ -214,9 +275,9 @@ export default function ProjectSectionPage({
                                     return (
                                         <Link key={zone.id} href={`/du-an/${slug}/phan-khu/${zoneSlug}`} className="bg-white rounded-custom overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col">
                                             <div className="aspect-video relative overflow-hidden bg-gray-100">
-                                                <img 
-                                                    src={project?.perspective_image_url || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg"} 
-                                                    alt={zoneTitle} 
+                                                <img
+                                                    src={project?.perspective_image_url || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg"}
+                                                    alt={zoneTitle}
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                 />
                                             </div>
@@ -313,22 +374,22 @@ export default function ProjectSectionPage({
                             <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
                             <p className="text-gray-500 mt-4 max-w-2xl mx-auto">Cập nhật liên tục những hình ảnh và thông tin mới nhất về tiến độ thi công của dự án, đảm bảo cam kết chất lượng và thời gian bàn giao.</p>
                         </div>
-                        
+
                         {progressHistory.length > 0 ? (
                             <div className="relative border-l-2 border-[#e2cb83]/30 ml-4 md:ml-10 space-y-12 pb-8">
                                 {progressHistory.map((item: any, idx: number) => (
                                     <div key={idx} className="relative pl-8 md:pl-16">
                                         {/* Timeline Dot */}
                                         <div className="absolute top-0 -left-[9px] w-4 h-4 rounded-full bg-[#e2cb83] border-4 border-white shadow-sm"></div>
-                                        
+
                                         <div className="bg-white rounded-custom p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                                             <div className="flex flex-col md:flex-row gap-8">
                                                 <div className="w-full md:w-1/3 shrink-0">
                                                     <div className="aspect-video md:aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 relative group">
-                                                        <img 
-                                                            src={item.image || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg"} 
-                                                            alt={item.title} 
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                                        <img
+                                                            src={item.image || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg"}
+                                                            alt={item.title}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                         />
                                                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                             <span className="material-symbols-outlined text-white text-4xl">zoom_in</span>
@@ -375,11 +436,10 @@ export default function ProjectSectionPage({
                                         <button
                                             key={idx}
                                             onClick={() => setActive360(tour.link)}
-                                            className={`px-6 py-2 rounded-full font-bold text-sm transition-all shadow-sm ${
-                                                active360 === tour.link 
-                                                    ? "bg-[#e2cb83] text-white" 
-                                                    : "bg-white text-gray-600 hover:bg-gray-100"
-                                            }`}
+                                            className={`px-6 py-2 rounded-full font-bold text-sm transition-all shadow-sm ${active360 === tour.link
+                                                ? "bg-[#e2cb83] text-white"
+                                                : "bg-white text-gray-600 hover:bg-gray-100"
+                                                }`}
                                         >
                                             {tour.title}
                                         </button>
@@ -442,13 +502,13 @@ export default function ProjectSectionPage({
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {articles.map((article) => {
                                 // Fallback slug if actual slug doesn't exist. Usually we'd want a real slug.
-                                const articleSlug = article.translations?.[0]?.page_title || article.id; 
+                                const articleSlug = article.translations?.[0]?.page_title || article.id;
                                 return (
                                     <Link key={article.id} href={`/du-an/${slug}/${section}/${articleSlug}`} className="bg-white rounded-custom overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col">
                                         <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
-                                            <img 
-                                                src={article.banner_image_url || article.banner_image || project?.perspective_image_url || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg"} 
-                                                alt={article.translations?.[0]?.title} 
+                                            <img
+                                                src={article.banner_image_url || article.banner_image || project?.perspective_image_url || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-1.jpg"}
+                                                alt={article.translations?.[0]?.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         </div>

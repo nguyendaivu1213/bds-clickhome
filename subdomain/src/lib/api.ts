@@ -62,6 +62,8 @@ export interface Project {
   perspective_image?: string | null;
   perspective_image_url?: string | null;
   google_map?: string | null;
+  latitude?: string | number | null;
+  longitude?: string | number | null;
   status: string;
   translations: ProjectTranslation[];
   // Convenience fields from Translatable
