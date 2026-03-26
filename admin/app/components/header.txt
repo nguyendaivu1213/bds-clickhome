@@ -1,0 +1,569 @@
+﻿"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import RichTextEditor from "./RichTextEditor";
+import MediaPicker from "./MediaPicker";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1/admin';
+
+interface Category {
+  id: number;
+  title: string;
+  parent_id: number | null;
+  data_type: string;
+}
+
+interface Investor {
+  id: number;
+  name: string;
+}
+
+interface ProjectFormProps {
+  initialData?: any;
+  mode: "create" | "update";
+}
+
+const TABS = [
+  { id: "info", label: "Thông tin dự án", icon: "info" },
+  { id: "seo", label: "SEO", icon: "search" },
+  { id: "overview", label: "Tổng quan", icon: "overview" },
+  { id: "location", label: "Vị trí", icon: "location_on" },
+  { id: "360", label: "360 độ", icon: "360" },
+  { id: "layout", label: "Mặt bằng & Layout", icon: "layers" },
+  { id: "amenities", label: "Tiện ích", icon: "pool" },
+  { id: "media", label: "Hình ảnh & Video", icon: "imagesmode" },
+  { id: "pricing", label: "Giá & Chính sách", icon: "sell" },
+  { id: "progress", label: "Tiến độ", icon: "event_available" },
+  { id: "contact", label: "Liên hệ", icon: "contact_support" },
+];
+
+const DEFAULT_FORM_DATA = {
+  name: "",
+  mainCategory: "",
+  subCategory: "",
+  tags: "",
+  perspectiveImage: "",
+  footerImage: "",
+  slogan: "",
+  shortDesc: "",
+  fullDesc: "",
+  publishDate: "",
+  url: "",
+  urlPrefix: "https://clickhome.vn/du-an/",
+  status: "Planning",
+  publishedStatus: "draft",
+  order: 0,
+  // SEO
+  seoTitle: "",
+  seoDesc: "",
+  seoKeywords: [] as string[],
+  seoHeader: "h1",
+  // Overview
+  investor: "",
+  scale: "",
+  productTypes: "Căn hộ chung cư",
+  designUnit: "",
+  handoffTime: "",
+  legal: "",
+  actualAddress: "",
+  slides: [] as { image: string; title: string }[],
+  // Location
+  googleMapLink: "",
+  latitude: "10.8752",
+  longitude: "106.8245",
+  locationStrengths: "",
+  realPhotos: [] as string[],
+  connections: [] as { icon: string; title: string; duration: string }[],
+  // 360
+  tour360: [] as { category: string; title: string; link: string }[],
+  // Layout
+  masterPlan: [] as { image: string; title: string; desc: string }[],
+  unitLayouts: [] as { type: string; title: string; area: string; image: string }[],
+  // Amenities
+  amenities: [] as { image: string; title: string; desc: string; isHighlight: boolean }[],
+  // Images & Video
+  mediaImages: [] as { image: string; title: string }[],
+  mediaVideos: [] as { title: string; link: string }[],
+  // Pricing & Policies
+  pricingProducts: [] as { code: string; type: string; area: string; price: string }[],
+  paymentPlans: [] as { title: string; desc: string; isSelected: boolean }[],
+  policyArticle: null as { title: string; updatedAt: string } | null,
+  documents: [] as { name: string; type: string }[],
+  // Progress
+  progressHistory: [] as { image: string; title: string; desc: string; date: string }[],
+  // Contact
+  email: "",
+  phone: "",
+  notificationSettings: {
+    emailConfirm: true,
+    zaloNotification: false,
+  },
+};
+
+export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("info");
+  const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [currentMediaTarget, setCurrentMediaTarget] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [investors, setInvestors] = useState<Investor[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isAutoSlug, setIsAutoSlug] = useState(mode === "create");
+
+  useEffect(() => {
+    async function fetchInvestors() {
+      try {
+        const res = await fetch(`${API_BASE}/investors?per_page=500`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const items = (data.data ?? data) as any[];
+          setInvestors(items.map(item => {
+            const trans = item.translations?.find((t: any) => t.locale === 'vi') ?? item.translations?.[0];
+            return {
+              id: item.id,
+              name: trans?.name ?? item.name ?? `Investor ${item.id}`,
+            };
+          }));
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải danh sách chủ đầu tư:', err);
+      }
+    }
+    fetchInvestors();
+  }, []);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch(`${API_BASE}/categories?per_page=500`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const items = (data.data ?? data) as any[];
+          setCategories(items.map(item => {
+            const trans = item.translations?.find((t: any) => t.locale === 'vi') ?? item.translations?.[0];
+            return {
+              id: item.id,
+              title: item.title ?? trans?.title ?? `Category ${item.id}`,
+              parent_id: item.parent_id,
+              data_type: item.data_type || "Dự án"
+            };
+          }));
+        }
+      } catch (err) {
+        console.error('Lỗi khi tải danh sách chuyên mục:', err);
+      }
+    }
+    fetchCategories();
+  }, []);
+
+  const [formData, setFormData] = useState(() => {
+    if (!initialData) return DEFAULT_FORM_DATA;
+    return { ...DEFAULT_FORM_DATA, ...initialData };
+  });
+
+  const mainCategories = categories.filter(c => c.parent_id === null && (c.data_type === "Dự án" || c.data_type === "Trang dự án"));
+  const subCategories = categories.filter(c => c.parent_id?.toString() === formData.mainCategory);
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prev: any) => {
+      const newData = { ...prev, [field]: value };
+      
+      // Auto-generate URL from name if enabled
+      if (field === "name" && isAutoSlug) {
+        newData.url = value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[đĐ]/g, "d")
+          .replace(/([^0-9a-z-\s])/g, "")
+          .replace(/(\s+)/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-+|-+$/g, "");
+      }
+      return newData;
+    });
+  };
+
+  const openMediaPicker = (target: string) => {
+    setCurrentMediaTarget(target);
+    setIsMediaPickerOpen(true);
+  };
+
+  const handleMediaSelect = (fileUrl: string) => {
+    if (currentMediaTarget) {
+      if (currentMediaTarget.includes(".")) {
+        const parts = currentMediaTarget.split(".");
+        const field = parts[0];
+        const index = parseInt(parts[1]);
+        const subField = parts[2];
+
+        const newList = [...(formData as any)[field]];
+        if (subField) {
+          // For array of objects (e.g., amenities.0.image)
+          newList[index] = { ...newList[index], [subField]: fileUrl };
+        } else {
+          // For array of strings (e.g., realPhotos.0)
+          newList[index] = fileUrl;
+        }
+        handleInputChange(field, newList);
+      } else {
+        // Direct field
+        handleInputChange(currentMediaTarget, fileUrl);
+      }
+    }
+    setIsMediaPickerOpen(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const url = mode === "create" ? `${API_BASE}/projects` : `${API_BASE}/projects/${initialData?.id}`;
+      const method = mode === "create" ? "POST" : "PUT";
+
+      const bodyData = { 
+        ...formData,
+        mainCategory: formData.mainCategory ? parseInt(formData.mainCategory) : null,
+        investor: formData.investor ? parseInt(formData.investor) : null,
+        order: formData.order ? parseInt(String(formData.order)) : 0,
+      };
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(bodyData),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (data.errors) {
+          const flatErrors: Record<string, string> = {};
+          Object.entries(data.errors).forEach(([k, v]) => {
+            flatErrors[k] = (v as string[])[0];
+          });
+          setErrors(flatErrors);
+        } else {
+          throw new Error(data.message || `Lỗi khi ${mode === "create" ? "tạo" : "cập nhật"} dự án`);
+        }
+        return;
+      }
+
+      router.push("/projects");
+      router.refresh();
+    } catch (err: any) {
+      setErrors({ _global: err.message || "Không thể kết nối đến máy chủ." });
+      console.error("Save error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="relative pb-24 max-w-[1400px] mx-auto w-full px-4 md:px-8">
+      {errors._global && (
+        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-medium flex gap-3 animate-in fade-in slide-in-from-top-2">
+          <span className="material-symbols-outlined">error</span>
+          {errors._global}
+        </div>
+      )}
+      {/* Page Header */}
+      <div className="flex flex-wrap justify-between items-end gap-4 mb-8 pt-8">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 mb-2 text-sm">
+            <Link className="text-slate-500 hover:text-primary transition-colors" href="/projects">Quản lý dự án</Link>
+            <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+            <span className="text-slate-900 font-semibold">{mode === "create" ? "Thêm Dự Án Mới" : "Cập nhật Dự Án"}</span>
+          </div>
+          <h1 className="text-slate-900 text-3xl font-black tracking-tight">
+            {mode === "create" ? "Thêm Dự Án Mới" : `Cập nhật dự án: ${formData.name || "Riverside Complex"}`}
+          </h1>
+          <p className="text-primary/70 text-sm font-medium">Quản lý nội dung và thông tin hiển thị của dự án trên website</p>
+        </div>
+        <div className="flex gap-3">
+          <button type="button" className="px-5 py-2 rounded-lg border border-slate-200 font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all">Huỷ</button>
+          <button type="submit" disabled={loading} className="px-6 py-2 bg-primary hover:bg-teal-600 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all flex items-center gap-2 disabled:opacity-70">
+            {loading ? (
+              <><span className="size-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span> Đang lưu...</>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[20px]">save</span>
+                {mode === "create" ? "Tạo Dự Án" : "Lưu Thay Đổi"}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs Navigation */}
+      <div className="border-b border-slate-200 mb-8 overflow-x-auto no-scrollbar sticky top-0 bg-slate-50 z-20 -mx-4 px-4 md:-mx-8 md:px-8">
+        <div className="flex gap-8 whitespace-nowrap min-w-max">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`pb-4 pt-4 text-sm transition-all relative ${
+                activeTab === tab.id
+                  ? "text-primary font-bold border-b-2 border-primary"
+                  : "text-slate-500 font-medium hover:text-primary"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                {tab.label}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content Area (2/3) */}
+        <div className="lg:col-span-2 space-y-8">
+          {activeTab === "info" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">description</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Thông tin cơ bản</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-slate-700">Tên dự án <span className="text-red-500">*</span></label>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsAutoSlug(!isAutoSlug)}
+                          className={`text-[10px] font-black px-2 py-0.5 rounded transition-colors ${isAutoSlug ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}
+                        >
+                          AUTO URL {isAutoSlug ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+                      <input 
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                        placeholder="VD: Riverside Complex"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                      />
+                      {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.name}</p>}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                       <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
+                       <select 
+                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                         value={formData.investor}
+                         onChange={(e) => handleInputChange("investor", e.target.value)}
+                       >
+                         <option value="">Chọn chủ đầu tư</option>
+                         {investors.map(inv => (
+                           <option key={inv.id} value={inv.id}>{inv.name}</option>
+                         ))}
+                       </select>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-slate-700">Slogan dự án</label>
+                  <input 
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium italic"
+                    placeholder="VD: Nơi khơi nguồn hạnh phúc"
+                    value={formData.slogan}
+                    onChange={(e) => handleInputChange("slogan", e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-slate-700">Mô tả ngắn (Description)</label>
+                  <textarea 
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
+                    placeholder="Nhập mô tả ngắn gọn về dự án..."
+                    value={formData.shortDesc}
+                    onChange={(e) => handleInputChange("shortDesc", e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-bold text-slate-700">Thẻ từ khóa (Tags)</label>
+                  <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 min-h-[50px]">
+                    {(formData.tags || "").split(",").filter(Boolean).map((tag: string, i: number) => (
+                      <span key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 shadow-sm transition-all group hover:border-primary">
+                        {tag.trim()}
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const currentTags = formData.tags.split(",").filter(Boolean);
+                            const newTags = currentTags.filter((_: string, idx: number) => idx !== i);
+                            handleInputChange("tags", newTags.join(","));
+                          }}
+                          className="material-symbols-outlined text-sm text-slate-300 hover:text-red-500"
+                        >
+                          close
+                        </button>
+                      </span>
+                    ))}
+                    <input 
+                      className="flex-1 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 placeholder:text-slate-300"
+                      placeholder="Thêm tag (VD: chung-cu, quan-2)..."
+                      onKeyDown={(e: any) => {
+                        if (e.key === "Enter" && e.target.value.trim()) {
+                           e.preventDefault();
+                           const currentTags = formData.tags ? formData.tags.split(",") : [];
+                           const newTags = [...currentTags, e.target.value.trim()];
+                           handleInputChange("tags", newTags.join(","));
+                           e.target.value = "";
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung chi tiết (Rich Text)</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.fullDesc} 
+                   onChange={(val) => handleInputChange("fullDesc", val)} 
+                />
+              </section>
+            </div>
+          )}
+
+          {activeTab === "seo" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">search</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Cấu hình SEO</h3>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-slate-700">SEO Title</label>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded ${formData.seoTitle.length > 60 ? 'bg-red-50 text-red-500' : 'bg-primary/10 text-primary'}`}>{formData.seoTitle.length} / 60</span>
+                    </div>
+                    <input 
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                      placeholder="VD: Riverside Complex | Căn hộ cao cấp Quận 2"
+                      value={formData.seoTitle}
+                      onChange={(e) => handleInputChange("seoTitle", e.target.value)}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-slate-700">SEO Meta Description</label>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded ${formData.seoDesc.length > 160 ? 'bg-red-50 text-red-500' : 'bg-primary/10 text-primary'}`}>{formData.seoDesc.length} / 160</span>
+                    </div>
+                    <textarea 
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
+                      placeholder="Mô tả tóm tắt nội dung trang..."
+                      value={formData.seoDesc}
+                      onChange={(e) => handleInputChange("seoDesc", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="bg-slate-900 p-8 rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden">
+                <div className="relative">
+                   <div className="flex justify-between items-center mb-6">
+                      <h4 className="text-white text-sm font-black flex items-center gap-3 uppercase tracking-widest opacity-60">Google Search Preview</h4>
+                      <span className="material-symbols-outlined text-primary text-2xl">google</span>
+                   </div>
+                   <div className="space-y-2 bg-white/5 backdrop-blur-sm p-6 rounded-3xl border border-white/5 shadow-inner text-white">
+                      <div className="text-[#1a0dab] text-xl font-bold hover:underline cursor-pointer">
+                        {formData.seoTitle || "Riverside Complex | Căn hộ cao cấp Quận 2"}
+                      </div>
+                      <div className="text-[#006621] text-sm">{formData.urlPrefix}{formData.url || "riverside-complex"}</div>
+                      <div className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">
+                        {formData.seoDesc || "Riverside Complex là dự án căn hộ cao cấp bậc nhất tại Quận 2..."}
+                      </div>
+                   </div>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {activeTab === "overview" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan dự án</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Địa chỉ thực tế</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.actualAddress} onChange={(e) => handleInputChange("actualAddress", e.target.value)} />
+                      </div>
+                   </div>
+                   <div className="space-y-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Đơn vị thiết kế</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.designUnit} onChange={(e) => handleInputChange("designUnit", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Tình trạng pháp lý</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.legal} onChange={(e) => handleInputChange("legal", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Thời gian bàn giao</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.handoffTime} onChange={(e) => handleInputChange("handoffTime", e.target.value)} />
+                      </div>
+                   </div>
+                </div>
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">view_carousel</span>
+                     <h3 className="text-xl font-bold text-slate-900 font-display">Slide ảnh nổi bật</h3>
+                  </div>
+                  <button type="button" onClick={() => handleInputChange("slides", [...formData.slides, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Slide</button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {formData.slides.map((slide: any, idx: number) => (
+                    <div key={idx} className="group relative bg-slate-50 rounded-2xl border border-slate-100 p-3">
+                       <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
+                          {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
+                       </div>
+                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title} onChange={(e) => {
+                         const newSlides = [...formData.slides];
+                         newSlides[idx].title = e.target.value;
+                         handleInputChange("slides", newSlides);
+                       }} />
+                       <button type="button" onClick={() => handleInputChange("slides", formData.slides.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg">
+                         <span className="material-symbols-outlined text-[14px]">close</span>
+                       </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+

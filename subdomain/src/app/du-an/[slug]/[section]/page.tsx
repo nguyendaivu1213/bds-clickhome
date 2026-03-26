@@ -33,7 +33,7 @@ export default function ProjectSectionPage({
     // Set initial active image when displayImages are loaded
     useEffect(() => {
         if (displayImages.length > 0) {
-            setActiveImage(displayImages[0]);
+            setActiveSlideImage(displayImages[0]);
         }
     }, [displayImages]);
 
