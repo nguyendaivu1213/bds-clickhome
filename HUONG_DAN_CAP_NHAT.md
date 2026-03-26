@@ -2,6 +2,20 @@
 
 Tài liệu này hướng dẫn cách đẩy code từ môi trường local lên server và thực hiện các bước cập nhật cần thiết cho 3 thành phần của dự án: **Backend**, **Admin**, và **Subdomain**.
 
+
+git pull;
+cd backend;
+composer install --no-dev;
+php artisan migrate --force;
+php artisan optimize:clear;
+php artisan optimize;
+
+cd ../admin;
+npm run build;
+cd ../subdomain;
+npm run build;
+pm2 restart all;
+
 ---
 
 ## 1. Tại máy Local (Máy đang phát triển)

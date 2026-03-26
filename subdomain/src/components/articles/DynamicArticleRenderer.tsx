@@ -160,12 +160,12 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
     case "blue_background":
       return (
         <section className="py-14 bg-[#1a4b8c] text-white w-full overflow-hidden">
-          <div className="max-w-5xl mx-auto px-4 text-center">
+          <div className="max-w-7xl mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-10 tracking-widest uppercase leading-tight font-display">{title}</h2>
 
             {html_content && (
               <div
-                className="prose prose-invert prose-lg mx-auto text-white/90 leading-relaxed max-w-4xl
+                className="prose prose-invert prose-lg mx-auto text-white/90 leading-relaxed max-w-7xl
                 [&_p]:mb-6 [&_p]:text-lg
                 [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-6 [&_ul]:text-left [&_ul]:inline-block
                 [&_li]:mb-2"
