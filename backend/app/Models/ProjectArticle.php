@@ -11,7 +11,7 @@ class ProjectArticle extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'project_id', 'type', 'banner_image', 'status', 'display_order'
+        'project_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
     ];
 
     public $translatedAttributes = [

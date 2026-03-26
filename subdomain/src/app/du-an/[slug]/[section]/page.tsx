@@ -119,41 +119,14 @@ export default function ProjectSectionPage({
                                     </h2>
 
                                     <div className="space-y-5 text-[15px]">
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Chủ đầu tư:</span>
-                                            <span className="text-gray-600">Công ty Cổ phần Đầu Tư Và Phát Triển Đô Thị Sài Đồng (Thành viên của Vingroup)</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Tổng diện tích đất dự án:</span>
-                                            <span className="text-gray-600">17.6 ha</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Mật độ xây dựng:</span>
-                                            <span className="text-gray-600">31%</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Quy mô phát triển:</span>
-                                            <span className="text-gray-600">3 tòa căn hộ & 364 căn nhà ở thấp tầng</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 h-auto text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Loại hình phát triển:</span>
-                                            <span className="text-gray-600">
-                                                Cao tầng (The Arcadia): 1PN, 2PN, 3PN, 4PN, Duplex <br />
-                                                Thấp tầng (The Botanica): Biệt thự đơn lập, biệt thụ song lập, liền kề, shophouse
-                                            </span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm khởi công:</span>
-                                            <span className="text-gray-600">Năm 2015</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Thời điểm bàn giao:</span>
-                                            <span className="text-gray-600">Tháng 11/2017</span>
-                                        </div>
-                                        <div className="flex border-b border-gray-50 pb-3 text-sm">
-                                            <span className="w-48 flex-shrink-0 font-bold text-gray-700">Hình thức sở hữu:</span>
-                                            <span className="text-gray-600 font-medium font-bold">Sổ đỏ lâu dài</span>
-                                        </div>
+                                        {translation?.overview_description ? (
+                                            <div 
+                                                className="prose prose-sm prose-slate max-w-none text-gray-700 w-full [&_table]:w-full [&_table]:text-sm [&_td]:border-b [&_td]:border-gray-50 [&_td]:pb-3 [&_td]:pt-3 [&_td:first-child]:font-bold [&_td:first-child]:w-48 [&_ul]:list-disc [&_ul]:ml-6 [&_li]:list-item"
+                                                dangerouslySetInnerHTML={{ __html: translation.overview_description }} 
+                                            />
+                                        ) : (
+                                            <p className="text-gray-500 italic">Nội dung đang được cập nhật...</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -163,37 +136,9 @@ export default function ProjectSectionPage({
                     {/* Dynamically Loaded Project Articles for this section */}
                     {articles.length > 0 && (
                         <div className="dynamic-articles-container mt-1">
-                            {articles.map(article => {
-                                const trans = article.translations?.[0] || {};
-                                return (
-                                    <div key={article.id} className="w-full space-y-10 mb-20">
-                                        {article.banner_image_url && (
-                                            <div className="w-full h-[50vh] md:h-[70vh] relative">
-                                                <img
-                                                    src={article.banner_image_url}
-                                                    className="w-full h-full object-cover"
-                                                    alt={trans.title || "Tổng quan dự án"}
-                                                />
-                                            </div>
-                                        )}
-                                        <div className="max-w-7xl mx-auto px-4">
-                                            <div className="w-full">
-                                                {trans.summary && (
-                                                    <div className="text-2xl font-bold text-gray-800 mb-8 leading-relaxed border-l-4 border-[#e2cb83] pl-6 py-2">
-                                                        {trans.summary}
-                                                    </div>
-                                                )}
-                                                {trans.html_content && (
-                                                    <div
-                                                        dangerouslySetInnerHTML={{ __html: trans.html_content }}
-                                                        className="prose prose-slate max-w-none text-gray-700 leading-loose text-xl [&>p]:mb-8 [&>strong]:text-gray-900"
-                                                    />
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {articles.map(article => (
+                                <DynamicArticleRenderer key={article.id} article={article} />
+                            ))}
                         </div>
                     )}
                 </>
@@ -232,39 +177,10 @@ export default function ProjectSectionPage({
 
                     {/* Dynamically Loaded Project Articles for this section */}
                     {articles.length > 0 && (
-                        <div className="dynamic-articles-container">
-                            {articles.map(article => {
-                                if (section === "vi-tri") {
-                                    const trans = article.translations?.[0] || {};
-                                    return (
-                                        <div key={article.id} className="max-w-7xl mx-auto px-4 py-8 space-y-10">
-                                            <div className="w-full">
-                                                {trans.summary && (
-                                                    <div className="text-xl font-bold text-gray-800 mb-6 leading-relaxed border-l-4 border-[#e2cb83] pl-6 py-2">
-                                                        {trans.summary}
-                                                    </div>
-                                                )}
-                                                {trans.html_content && (
-                                                    <div
-                                                        dangerouslySetInnerHTML={{ __html: trans.html_content }}
-                                                        className="prose prose-slate max-w-none text-gray-600 leading-[1.8] text-lg [&>p]:mb-6 [&>strong]:text-gray-900"
-                                                    />
-                                                )}
-                                            </div>
-                                            {article.banner_image_url && (
-                                                <div className="w-full h-auto rounded-custom overflow-hidden shadow-2xl mt-12">
-                                                    <img
-                                                        src={article.banner_image_url}
-                                                        className="w-full h-auto object-cover"
-                                                        alt="Vị trí"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                }
-                                return <DynamicArticleRenderer key={article.id} article={article} />;
-                            })}
+                        <div className="dynamic-articles-container mt-1">
+                            {articles.map(article => (
+                                <DynamicArticleRenderer key={article.id} article={article} />
+                            ))}
                         </div>
                     )}
                 </>
@@ -295,7 +211,10 @@ export default function ProjectSectionPage({
                                                 <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-[#e2cb83] transition-colors">{zoneTitle}</h3>
                                                 <p className="text-[14px] text-gray-500 mb-4 line-clamp-2">Khám phá chi tiết mặt bằng, vị trí và tiện ích riêng của {zoneTitle}.</p>
                                                 <div className="mt-auto flex items-center text-[#e2cb83] text-[13px] font-bold uppercase tracking-wider group-hover:gap-2 transition-all">
-                                                    Xem chi tiết <span className="material-symbols-outlined text-[18px]">arrow_right_alt</span>
+                                                    Xem chi tiết
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 ml-1">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                                    </svg>
                                                 </div>
                                             </div>
                                         </Link>

@@ -356,7 +356,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                       <input 
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
                         placeholder="VD: Riverside Complex"
-                        value={formData.name}
+                        value={formData.name || ""}
                         onChange={(e) => handleInputChange("name", e.target.value)}
                       />
                       {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.name}</p>}
@@ -381,7 +381,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   <input 
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium italic"
                     placeholder="VD: Nơi khơi nguồn hạnh phúc"
-                    value={formData.slogan}
+                    value={formData.slogan || ""}
                     onChange={(e) => handleInputChange("slogan", e.target.value)}
                   />
                 </div>
@@ -391,7 +391,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   <textarea 
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
                     placeholder="Nhập mô tả ngắn gọn về dự án..."
-                    value={formData.shortDesc}
+                    value={formData.shortDesc || ""}
                     onChange={(e) => handleInputChange("shortDesc", e.target.value)}
                   />
                 </div>
@@ -462,7 +462,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                     <input 
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
                       placeholder="VD: Riverside Complex | Căn hộ cao cấp Quận 2"
-                      value={formData.seoTitle}
+                      value={formData.seoTitle || ""}
                       onChange={(e) => handleInputChange("seoTitle", e.target.value)}
                     />
                   </div>
@@ -475,7 +475,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                     <textarea 
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
                       placeholder="Mô tả tóm tắt nội dung trang..."
-                      value={formData.seoDesc}
+                      value={formData.seoDesc || ""}
                       onChange={(e) => handleInputChange("seoDesc", e.target.value)}
                     />
                   </div>
@@ -552,7 +552,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                        <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
                           {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
                        </div>
-                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title} onChange={(e) => {
+                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title || ""} onChange={(e) => {
                          const newSlides = [...formData.slides];
                          newSlides[idx].title = e.target.value;
                          handleInputChange("slides", newSlides);
@@ -632,15 +632,15 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         </div>
                         {/* Hidden Latitude and Longitude */}
                         <div className="hidden">
-                           <input value={formData.latitude} readOnly />
-                           <input value={formData.longitude} readOnly />
+                           <input value={formData.latitude || ""} readOnly />
+                           <input value={formData.longitude || ""} readOnly />
                         </div>
                      </div>
                   </div>
                   <div className="lg:col-span-12 space-y-8">
                      <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
                         <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
-                        <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium min-h-[120px]" placeholder="Mô tả thế mạnh vị trí..." value={formData.locationStrengths} onChange={(e) => handleInputChange("locationStrengths", e.target.value)} />
+                        <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium min-h-[120px]" placeholder="Mô tả thế mạnh vị trí..." value={formData.locationStrengths || ""} onChange={(e) => handleInputChange("locationStrengths", e.target.value)} />
                      </div>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
@@ -664,12 +664,12 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                                  <div key={idx} className="bg-white p-4 rounded-2xl border border-primary/10 shadow-sm flex items-center gap-4 group">
                                     <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined">{conn.icon || "location_on"}</span></div>
                                     <div className="flex-1">
-                                       <input className="w-full border-none p-0 text-xs font-black text-slate-700 bg-transparent focus:ring-0" value={conn.title} onChange={(e) => {
+                                       <input className="w-full border-none p-0 text-xs font-black text-slate-700 bg-transparent focus:ring-0" value={conn.title || ""} onChange={(e) => {
                                           const newConn = [...formData.connections];
                                           newConn[idx].title = e.target.value;
                                           handleInputChange("connections", newConn);
                                        }} />
-                                       <input className="w-full border-none p-0 text-[10px] font-bold text-slate-400 bg-transparent focus:ring-0" value={conn.duration} onChange={(e) => {
+                                       <input className="w-full border-none p-0 text-[10px] font-bold text-slate-400 bg-transparent focus:ring-0" value={conn.duration || ""} onChange={(e) => {
                                           const newConn = [...formData.connections];
                                           newConn[idx].duration = e.target.value;
                                           handleInputChange("connections", newConn);
@@ -701,7 +701,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                        </div>
                        <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-3">
-                             <input className="text-lg font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 max-w-[300px]" placeholder="Tên tiện ích..." value={item.title} onChange={(e) => {
+                             <input className="text-lg font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 max-w-[300px]" placeholder="Tên tiện ích..." value={item.title || ""} onChange={(e) => {
                                const newAm = [...formData.amenities];
                                newAm[idx].title = e.target.value;
                                handleInputChange("amenities", newAm);
@@ -715,7 +715,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nổi bật</span>
                              </label>
                           </div>
-                          <textarea className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 focus:ring-0 min-h-[40px] resize-none" placeholder="Mô tả ngắn..." value={item.desc} onChange={(e) => {
+                          <textarea className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 focus:ring-0 min-h-[40px] resize-none" placeholder="Mô tả ngắn..." value={item.desc || ""} onChange={(e) => {
                                const newAm = [...formData.amenities];
                                newAm[idx].desc = e.target.value;
                                handleInputChange("amenities", newAm);
@@ -743,7 +743,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Danh mục / Vị trí</label>
-                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.category} onChange={(e) => {
+                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.category || ""} onChange={(e) => {
                                const newT = [...formData.tour360];
                                newT[idx].category = e.target.value;
                                handleInputChange("tour360", newT);
@@ -751,7 +751,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                           </div>
                           <div className="space-y-1">
                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiêu đề hiển thị</label>
-                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.title} onChange={(e) => {
+                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.title || ""} onChange={(e) => {
                                const newT = [...formData.tour360];
                                newT[idx].title = e.target.value;
                                handleInputChange("tour360", newT);
@@ -760,7 +760,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                        </div>
                        <div className="flex-1 space-y-1">
                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Đường dẫn Tour (URL)</label>
-                          <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-primary" placeholder="https://..." value={tour.link} onChange={(e) => {
+                          <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-primary" placeholder="https://..." value={tour.link || ""} onChange={(e) => {
                                const newT = [...formData.tour360];
                                newT[idx].link = e.target.value;
                                handleInputChange("tour360", newT);
@@ -787,12 +787,12 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                               {plan.image ? <img src={plan.image} className="w-full h-full object-cover" alt="Master Plan" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center text-5xl">add_photo_alternate</span>}
                            </div>
                            <div className="p-6 space-y-2">
-                              <input className="w-full font-bold text-slate-900 border-none p-0 focus:ring-0" placeholder="Tên mặt bằng..." value={plan.title} onChange={(e) => {
+                              <input className="w-full font-bold text-slate-900 border-none p-0 focus:ring-0" placeholder="Tên mặt bằng..." value={plan.title || ""} onChange={(e) => {
                                  const newP = [...formData.masterPlan];
                                  newP[idx].title = e.target.value;
                                  handleInputChange("masterPlan", newP);
                               }} />
-                              <input className="w-full text-xs text-slate-500 border-none p-0 focus:ring-0" placeholder="Mô tả tóm tắt..." value={plan.desc} onChange={(e) => {
+                              <input className="w-full text-xs text-slate-500 border-none p-0 focus:ring-0" placeholder="Mô tả tóm tắt..." value={plan.desc || ""} onChange={(e) => {
                                  const newP = [...formData.masterPlan];
                                  newP[idx].desc = e.target.value;
                                  handleInputChange("masterPlan", newP);
@@ -816,12 +816,12 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                               {unit.image ? <img src={unit.image} className="w-full h-full object-cover" alt="Unit Layout" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add</span>}
                               <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-black rounded uppercase">{unit.type}</div>
                            </div>
-                           <input className="w-full font-bold text-[13px] border-none p-0 focus:ring-0" value={unit.title} onChange={(e) => {
+                           <input className="w-full font-bold text-[13px] border-none p-0 focus:ring-0" value={unit.title || ""} onChange={(e) => {
                               const newU = [...formData.unitLayouts];
                               newU[idx].title = e.target.value;
                               handleInputChange("unitLayouts", newU);
                            }} />
-                           <input className="w-full text-[10px] text-slate-400 font-bold border-none p-0 focus:ring-0" value={unit.area} onChange={(e) => {
+                           <input className="w-full text-[10px] text-slate-400 font-bold border-none p-0 focus:ring-0" value={unit.area || ""} onChange={(e) => {
                               const newU = [...formData.unitLayouts];
                               newU[idx].area = e.target.value;
                               handleInputChange("unitLayouts", newU);
@@ -860,12 +860,12 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         <div key={idx} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 group">
                            <div className="size-10 rounded-xl bg-red-100 text-red-500 flex items-center justify-center shrink-0"><span className="material-symbols-outlined">play_circle</span></div>
                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <input className="w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" placeholder="Tiêu đề video..." value={vid.title} onChange={(e) => {
+                              <input className="w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" placeholder="Tiêu đề video..." value={vid.title || ""} onChange={(e) => {
                                  const newV = [...formData.mediaVideos];
                                  newV[idx].title = e.target.value;
                                  handleInputChange("mediaVideos", newV);
                               }} />
-                              <input className="w-full bg-transparent border-none p-0 text-sm font-medium text-primary focus:ring-0" placeholder="Link Youtube/Vimeo..." value={vid.link} onChange={(e) => {
+                              <input className="w-full bg-transparent border-none p-0 text-sm font-medium text-primary focus:ring-0" placeholder="Link Youtube/Vimeo..." value={vid.link || ""} onChange={(e) => {
                                  const newV = [...formData.mediaVideos];
                                  newV[idx].link = e.target.value;
                                  handleInputChange("mediaVideos", newV);
@@ -900,16 +900,16 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         <tbody className="divide-y divide-slate-50">
                            {formData.pricingProducts.map((prod: any, idx: number) => (
                               <tr key={idx} className="group hover:bg-slate-50/50 transition-colors uppercase font-bold text-xs text-slate-600">
-                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 font-bold text-slate-900" value={prod.code} onChange={(e) => {
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 font-bold text-slate-900" value={prod.code || ""} onChange={(e) => {
                                     const newP = [...formData.pricingProducts]; newP[idx].code = e.target.value; handleInputChange("pricingProducts", newP);
                                  }} /></td>
-                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.type} onChange={(e) => {
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.type || ""} onChange={(e) => {
                                     const newP = [...formData.pricingProducts]; newP[idx].type = e.target.value; handleInputChange("pricingProducts", newP);
                                  }} /></td>
-                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.area} onChange={(e) => {
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.area || ""} onChange={(e) => {
                                     const newP = [...formData.pricingProducts]; newP[idx].area = e.target.value; handleInputChange("pricingProducts", newP);
                                  }} /></td>
-                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 text-primary" value={prod.price} onChange={(e) => {
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 text-primary" value={prod.price || ""} onChange={(e) => {
                                     const newP = [...formData.pricingProducts]; newP[idx].price = e.target.value; handleInputChange("pricingProducts", newP);
                                  }} /></td>
                                  <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100"><button type="button" onClick={() => handleInputChange("pricingProducts", formData.pricingProducts.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button></td>
@@ -956,14 +956,14 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         </div>
                         <div className="p-8 space-y-4">
                            <div className="flex flex-col gap-1">
-                              <input className="w-full font-black text-lg text-slate-900 border-none p-0 focus:ring-0" placeholder="Tiêu đề mốc..." value={item.title} onChange={(e) => {
+                              <input className="w-full font-black text-lg text-slate-900 border-none p-0 focus:ring-0" placeholder="Tiêu đề mốc..." value={item.title || ""} onChange={(e) => {
                                  const newH = [...formData.progressHistory]; newH[idx].title = e.target.value; handleInputChange("progressHistory", newH);
                               }} />
-                              <input type="text" className="w-full text-[10px] font-black text-primary uppercase tracking-widest border-none p-0 focus:ring-0" placeholder="Tháng 01, 2024" value={item.date} onChange={(e) => {
+                              <input type="text" className="w-full text-[10px] font-black text-primary uppercase tracking-widest border-none p-0 focus:ring-0" placeholder="Tháng 01, 2024" value={item.date || ""} onChange={(e) => {
                                  const newH = [...formData.progressHistory]; newH[idx].date = e.target.value; handleInputChange("progressHistory", newH);
                               }} />
                            </div>
-                           <textarea className="w-full text-sm text-slate-500 font-medium border-none p-0 focus:ring-0 min-h-[60px] resize-none" placeholder="Chi tiết thi công..." value={item.desc} onChange={(e) => {
+                           <textarea className="w-full text-sm text-slate-500 font-medium border-none p-0 focus:ring-0 min-h-[60px] resize-none" placeholder="Chi tiết thi công..." value={item.desc || ""} onChange={(e) => {
                                  const newH = [...formData.progressHistory]; newH[idx].desc = e.target.value; handleInputChange("progressHistory", newH);
                            }} />
                         </div>
@@ -986,14 +986,14 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email nhận Lead</label>
                         <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
                            <span className="material-symbols-outlined text-primary">alternate_email</span>
-                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="admin@domain.com" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} />
+                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="admin@domain.com" value={formData.email || ""} onChange={(e) => handleInputChange("email", e.target.value)} />
                         </div>
                      </div>
                      <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hotline dự án</label>
                         <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
                            <span className="material-symbols-outlined text-primary">call</span>
-                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="0988..." value={formData.phone} onChange={(e) => handleInputChange("phone", e.target.value)} />
+                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="0988..." value={formData.phone || ""} onChange={(e) => handleInputChange("phone", e.target.value)} />
                         </div>
                      </div>
                   </div>
@@ -1037,7 +1037,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Đường dẫn dự án</label>
                    <div className={`flex items-center gap-2 bg-slate-50 p-3 rounded-xl border group transition-all ${errors.url ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-100'}`}>
                       <span className="text-slate-300 text-[10px] font-bold">/du-an/</span>
-                      <input className="flex-1 bg-transparent border-none p-0 text-xs font-black text-primary placeholder:text-primary/20 focus:ring-0" placeholder="riverside-complex" value={formData.url} onChange={(e) => handleInputChange("url", e.target.value)} />
+                      <input className="flex-1 bg-transparent border-none p-0 text-xs font-black text-primary placeholder:text-primary/20 focus:ring-0" placeholder="riverside-complex" value={formData.url || ""} onChange={(e) => handleInputChange("url", e.target.value)} />
                    </div>
                    {errors.url && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1">{errors.url}</p>}
                 </div>
