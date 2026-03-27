@@ -1,12 +1,12 @@
 "use client";
 
 import { useInvestor } from "@/context/InvestorContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { fetchPosts, fetchCategories, Post, Category } from "@/lib/api";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-export default function NewsPage() {
+function NewsPageContent() {
   const { investor, loading } = useInvestor();
   const investorName = investor?.name || '...';
   const searchParams = useSearchParams();
@@ -17,11 +17,9 @@ export default function NewsPage() {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    // Tải chuyên mục Tin tức
     fetchCategories('Tin tức').then((data) => {
-      // Chỉ giữ lại những danh mục cha có type = Tin tức, thư viện admin API đôi khi không lọc sẵn
       const filtered = data.filter(c => c.data_type === 'Tin tức');
-      setCategories(filtered.length > 0 ? filtered : data); // Fallback nếu API không trả đúng data_type
+      setCategories(filtered.length > 0 ? filtered : data);
     });
   }, []);
 
@@ -39,7 +37,6 @@ export default function NewsPage() {
     }
   }, [investor, loading, categoryId]);
 
-  // Đệ quy hiển thị chuyên mục con
   const renderCategoryMenu = (cats: Category[]) => {
     return (
       <ul className="space-y-2 mt-2">
@@ -119,7 +116,6 @@ export default function NewsPage() {
             )}
           </div>
 
-          {/* Cột phải: Sidebar chuyên mục */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
               <h3 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wide border-l-4 border-primary pl-4">
@@ -136,5 +132,13 @@ export default function NewsPage() {
         </div>
       </main>
     </>
+  );
+}
+
+export default function NewsPage() {
+  return (
+    <Suspense fallback={<div className="text-center py-20 text-gray-500">Đang tải...</div>}>
+      <NewsPageContent />
+    </Suspense>
   );
 }
