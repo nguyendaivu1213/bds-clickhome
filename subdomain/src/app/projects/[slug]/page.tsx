@@ -87,7 +87,7 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
       <section id="vi-tri" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Vị trí đắc địa</h2>
+            <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">vị trí dự án</h2>
             <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
           </div>
           <div className="aspect-w-16 aspect-h-7 rounded-custom overflow-hidden shadow-md">

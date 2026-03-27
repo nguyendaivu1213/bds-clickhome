@@ -26,9 +26,8 @@ interface ProjectFormProps {
 }
 
 const TABS = [
-  { id: "info", label: "Thông tin dự án", icon: "info" },
+  { id: "info", label: "Tổng quan", icon: "info" },
   { id: "seo", label: "SEO", icon: "search" },
-  { id: "overview", label: "Tổng quan", icon: "overview" },
   { id: "location", label: "Vị trí", icon: "location_on" },
   { id: "360", label: "360 độ", icon: "360" },
   { id: "layout", label: "Mặt bằng & Layout", icon: "layers" },
@@ -67,6 +66,7 @@ const DEFAULT_FORM_DATA = {
   designUnit: "",
   handoffTime: "",
   legal: "",
+  youtube_link: "",
   actualAddress: "",
   slides: [] as { image: string; title: string }[],
   // Location
@@ -442,6 +442,71 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                    onChange={(val) => handleInputChange("fullDesc", val)} 
                 />
               </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan chi tiết</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="space-y-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Địa chỉ thực tế</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.actualAddress} onChange={(e) => handleInputChange("actualAddress", e.target.value)} />
+                      </div>
+                   </div>
+                   <div className="space-y-6">
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Đơn vị thiết kế</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.designUnit} onChange={(e) => handleInputChange("designUnit", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Tình trạng pháp lý</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.legal} onChange={(e) => handleInputChange("legal", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Youtube Link</label>
+                        <input placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.youtube_link} onChange={(e) => handleInputChange("youtube_link", e.target.value)} />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label className="text-sm font-bold text-slate-700">Thời gian bàn giao</label>
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.handoffTime} onChange={(e) => handleInputChange("handoffTime", e.target.value)} />
+                      </div>
+                   </div>
+                </div>
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">view_carousel</span>
+                     <h3 className="text-xl font-bold text-slate-900 font-display">Slide ảnh nổi bật</h3>
+                  </div>
+                  <button type="button" onClick={() => handleInputChange("slides", [...formData.slides, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Slide</button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {formData.slides.map((slide: any, idx: number) => (
+                    <div key={idx} className="group relative bg-slate-50 rounded-2xl border border-slate-100 p-3">
+                       <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
+                          {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
+                       </div>
+                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title || ""} onChange={(e) => {
+                         const newSlides = [...formData.slides];
+                         newSlides[idx].title = e.target.value;
+                         handleInputChange("slides", newSlides);
+                       }} />
+                       <button type="button" onClick={() => handleInputChange("slides", formData.slides.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg">
+                         <span className="material-symbols-outlined text-[14px]">close</span>
+                       </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
             </div>
           )}
 
@@ -502,70 +567,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
             </div>
           )}
 
-          {activeTab === "overview" && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan dự án</h3>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Địa chỉ thực tế</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.actualAddress} onChange={(e) => handleInputChange("actualAddress", e.target.value)} />
-                      </div>
-                   </div>
-                   <div className="space-y-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Đơn vị thiết kế</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.designUnit} onChange={(e) => handleInputChange("designUnit", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Tình trạng pháp lý</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.legal} onChange={(e) => handleInputChange("legal", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Thời gian bàn giao</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.handoffTime} onChange={(e) => handleInputChange("handoffTime", e.target.value)} />
-                      </div>
-                   </div>
-                </div>
-              </section>
-
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">view_carousel</span>
-                     <h3 className="text-xl font-bold text-slate-900 font-display">Slide ảnh nổi bật</h3>
-                  </div>
-                  <button type="button" onClick={() => handleInputChange("slides", [...formData.slides, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Slide</button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {formData.slides.map((slide: any, idx: number) => (
-                    <div key={idx} className="group relative bg-slate-50 rounded-2xl border border-slate-100 p-3">
-                       <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
-                          {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
-                       </div>
-                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title || ""} onChange={(e) => {
-                         const newSlides = [...formData.slides];
-                         newSlides[idx].title = e.target.value;
-                         handleInputChange("slides", newSlides);
-                       }} />
-                       <button type="button" onClick={() => handleInputChange("slides", formData.slides.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg">
-                         <span className="material-symbols-outlined text-[14px]">close</span>
-                       </button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </div>
-          )}
 
           {activeTab === "location" && (
             <div key="loc" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">

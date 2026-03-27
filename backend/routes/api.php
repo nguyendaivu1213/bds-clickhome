@@ -27,6 +27,8 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
+
 Route::prefix('v1/admin')->as('admin.')->group(function () {
     Route::apiResource('projects', AdminProjectController::class);
     Route::apiResource('posts', AdminPostController::class);
@@ -40,6 +42,7 @@ Route::prefix('v1/admin')->as('admin.')->group(function () {
     Route::apiResource('zones', AdminProjectZoneController::class);
     Route::apiResource('project-articles', AdminProjectArticleController::class);
     Route::apiResource('zone-articles', AdminZoneArticleController::class);
+    Route::apiResource('properties', AdminPropertyController::class);
 });
 
 Route::prefix('v1/public')->as('public.')->group(function () {

@@ -12,11 +12,12 @@ class Property extends Model implements TranslatableContract
 
     protected $fillable = [
         'project_id', 'zone_id', 'product_type', 'floor', 'area', 
-        'price', 'main_image', 'status', 'display_order'
+        'price', 'main_image', 'status', 'display_order',
+        'product_code', 'video_url'
     ];
 
     public $translatedAttributes = [
-        'summary', 'html_content', 'slide_images'
+        'name', 'summary', 'html_content', 'slide_images'
     ];
 
     public function project()

@@ -49,6 +49,10 @@ export interface ProjectTranslation {
   product_types?: string | null;
   area?: string | null;
   handover_time?: string | null;
+  scale?: string | null;
+  handoff_time?: string | null;
+  handoffTime?: string | null;
+  legal?: string | null;
   map_360_links?: { category: string; title: string; link: string }[];
   master_plan?: { image: string; title: string; desc: string }[];
   other_layouts?: { type: string; title: string; area: string; image: string }[];
@@ -74,6 +78,11 @@ export interface Project {
   location?: string | null;
   product_types?: string | null;
   handover_time?: string | null;
+  scale?: string | null;
+  handoff_time?: string | null;
+  handoffTime?: string | null;
+  legal?: string | null;
+  youtube_link?: string | null;
   slide_images?: { image: string; title: string; image_url?: string }[];
 }
 

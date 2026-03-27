@@ -5,6 +5,13 @@ import Link from "next/link";
 import { fetchProject, fetchArticlesForProject, fetchProjectZones, Project, ProjectArticle, ProjectZone } from "@/lib/api";
 import DynamicArticleRenderer from "@/components/articles/DynamicArticleRenderer";
 
+function getYouTubeEmbedUrl(url: string | null | undefined) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+}
+
 export default function ProjectSectionPage({
     params,
 }: {
@@ -15,7 +22,7 @@ export default function ProjectSectionPage({
     const [articles, setArticles] = useState<ProjectArticle[]>([]);
     const [zones, setZones] = useState<ProjectZone[]>([]);
     const [active360, setActive360] = useState<string | null>(null);
-    const [activeSlideImage, setActiveSlideImage] = useState<string | null>(null);
+    const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
 
     const displayImages = useMemo(() => {
         const slideMedia = project?.slide_images || [];
@@ -30,12 +37,12 @@ export default function ProjectSectionPage({
             ];
     }, [project]);
 
-    // Set initial active image when displayImages are loaded
+    // Handle auto-slide or initialization if needed
     useEffect(() => {
-        if (displayImages.length > 0) {
-            setActiveSlideImage(displayImages[0]);
+        if (displayImages.length > 0 && activeSlideIndex >= displayImages.length) {
+            setActiveSlideIndex(0);
         }
-    }, [displayImages]);
+    }, [displayImages, activeSlideIndex]);
 
     useEffect(() => {
         fetchProject(slug).then((data) => {
@@ -72,62 +79,150 @@ export default function ProjectSectionPage({
 
     switch (section) {
         case "tong-quan":
-
             return (
                 <>
-                    <section className="py-10 bg-white border-t border-gray-100">
+                    {/* NEW Full-width Image Slider with Slide Effect */}
+                    <section className="py-10 bg-white">
                         <div className="max-w-7xl mx-auto px-4">
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                                {/* Left Column: Image Gallery */}
-                                <div className="lg:col-span-6">
-                                    <div className="space-y-4">
-                                        <div className="overflow-hidden rounded-sm shadow-md aspect-video bg-gray-50">
+                            <div className="relative rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px] lg:h-[600px] group bg-gray-100">
+                                <div 
+                                    className="flex h-full transition-transform duration-500 ease-in-out"
+                                    style={{ transform: `translateX(-${activeSlideIndex * 100}%)` }}
+                                >
+                                    {displayImages.map((img, idx) => (
+                                        <div key={idx} className="w-full h-full flex-shrink-0">
                                             <img
-                                                src={activeSlideImage || displayImages[0]}
-                                                alt={projectName}
-                                                className="w-full h-full object-cover transition-all duration-500"
+                                                src={img}
+                                                alt={`${projectName} slide ${idx + 1}`}
+                                                className="w-full h-full object-cover"
                                             />
                                         </div>
-                                        {displayImages.length > 1 && (
-                                            <div className="grid grid-cols-4 gap-4">
-                                                {displayImages.slice(0, 8).map((img, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        onClick={() => setActiveSlideImage(img)}
-                                                        className={`aspect-square overflow-hidden rounded-sm shadow-sm cursor-pointer border-2 transition-all ${(activeSlideImage || displayImages[0]) === img
-                                                            ? "border-[#e2cb83] opacity-100 shadow-md"
-                                                            : "border-gray-100 opacity-60 hover:opacity-100"
-                                                            }`}
-                                                    >
-                                                        <img
-                                                            src={img}
-                                                            alt={`${projectName} thumb ${idx + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                    ))}
+                                </div>
+                                
+                                {/* Prev Button - SVG Icon */}
+                                <button 
+                                    onClick={() => setActiveSlideIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                    </svg>
+                                </button>
+                                
+                                {/* Next Button - SVG Icon */}
+                                <button 
+                                    onClick={() => setActiveSlideIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                    </svg>
+                                </button>
+
+                                {/* Pagination 1, 2, 3... */}
+                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 z-10">
+                                    {displayImages.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setActiveSlideIndex(idx)}
+                                            className={`size-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center border ${
+                                                activeSlideIndex === idx 
+                                                ? "bg-[#e2cb83] text-white border-[#e2cb83] shadow-md scale-110" 
+                                                : "bg-white/80 text-gray-700 border-white/80 hover:bg-white"
+                                            }`}
+                                        >
+                                            {idx + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* NEW Stat Cards */}
+                    <section className="pb-12 bg-white border-b border-gray-100">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Card 1 */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-5 flex items-center gap-5 hover:border-[#e2cb83]/50 transition-colors">
+                                    <div className="size-14 rounded-full bg-[#8aa496] flex items-center justify-center shrink-0 shadow-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="w-7 h-7">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Quy mô</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{project?.scale || translation?.scale || "Đang cập nhật"}</p>
                                     </div>
                                 </div>
 
-                                {/* Right Column: Detailed Info */}
-                                <div className="lg:col-span-6">
-                                    <h2 className="text-3xl font-bold mb-8 text-gray-800 uppercase tracking-tight leading-tight">
-                                        TỔNG QUAN DỰ ÁN <br />
-                                        <span className="text-[#e2cb83]">{projectName}</span>
-                                    </h2>
-
-                                    <div className="space-y-5 text-[15px]">
-                                        {translation?.overview_description ? (
-                                            <div 
-                                                className="prose prose-sm prose-slate max-w-none text-gray-700 w-full [&_table]:w-full [&_table]:text-sm [&_td]:border-b [&_td]:border-gray-50 [&_td]:pb-3 [&_td]:pt-3 [&_td:first-child]:font-bold [&_td:first-child]:w-48 [&_ul]:list-disc [&_ul]:ml-6 [&_li]:list-item"
-                                                dangerouslySetInnerHTML={{ __html: translation.overview_description }} 
-                                            />
-                                        ) : (
-                                            <p className="text-gray-500 italic">Nội dung đang được cập nhật...</p>
-                                        )}
+                                {/* Card 2 */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-5 flex items-center gap-5 hover:border-[#e2cb83]/50 transition-colors">
+                                    <div className="size-14 rounded-full bg-[#8aa496] flex items-center justify-center shrink-0 shadow-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="w-7 h-7">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                        </svg>
                                     </div>
+                                    <div>
+                                        <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Bàn giao</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{project?.handoff_time || translation?.handoff_time || project?.handoffTime || translation?.handoffTime || "Đang cập nhật"}</p>
+                                    </div>
+                                </div>
+
+                                {/* Card 3 */}
+                                <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] p-5 flex items-center gap-5 hover:border-[#e2cb83]/50 transition-colors">
+                                    <div className="size-14 rounded-full bg-[#8aa496] flex items-center justify-center shrink-0 shadow-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="white" className="w-7 h-7">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M18 9l-6-6-6 6M18 15l-6 6-6-6" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Pháp lý</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{project?.legal || translation?.legal || "Đang cập nhật"}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* NEW Description with Side Media */}
+                    <section className="py-12 bg-white">
+                        <div className="max-w-7xl mx-auto px-4">
+                            <h2 className="text-3xl font-bold mb-12 text-gray-800 uppercase tracking-tight leading-tight text-center">
+                                TỔNG QUAN DỰ ÁN <br />
+                                <span className="text-[#e2cb83]">{projectName}</span>
+                            </h2>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+                                {/* Left side: Video or Perspective Image */}
+                                <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video bg-gray-100 border border-gray-100">
+                                    {project?.youtube_link && getYouTubeEmbedUrl(project.youtube_link) ? (
+                                        <iframe
+                                            src={getYouTubeEmbedUrl(project.youtube_link)!}
+                                            className="w-full h-full border-none"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                    ) : (
+                                        <img
+                                            src={project?.perspective_image_url || displayImages[0]}
+                                            alt={projectName}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )}
+                                </div>
+
+                                {/* Right side: Text description */}
+                                <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
+                                    {translation?.overview_description ? (
+                                        <div 
+                                            className="prose prose-sm prose-slate max-w-none text-gray-700 w-full [&_table]:w-full [&_table]:text-sm [&_td]:border-b [&_td]:border-gray-50 [&_td]:pb-3 [&_td]:pt-3 [&_td:first-child]:font-bold [&_td:first-child]:w-48 [&_ul]:list-disc [&_ul]:ml-6 [&_li]:list-item"
+                                            dangerouslySetInnerHTML={{ __html: translation.overview_description }} 
+                                        />
+                                    ) : (
+                                        <p className="text-gray-500 italic">Nội dung đang được cập nhật...</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -149,7 +244,7 @@ export default function ProjectSectionPage({
                     <section className="py-20 bg-gray-50">
                         <div className="max-w-7xl mx-auto px-4">
                             <div className="text-center mb-16">
-                                <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">Vị trí đắc địa</h2>
+                                <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-wide mb-4">vị trí dự án</h2>
                                 <div className="w-16 h-1 bg-[#e2cb83] mx-auto"></div>
                             </div>
                             {project?.latitude && project?.longitude ? (

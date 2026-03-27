@@ -8,7 +8,7 @@ class PropertyTranslation extends Model
     public $timestamps = false;
     
     protected $fillable = [
-        'summary', 'html_content', 'slide_images'
+        'name', 'summary', 'html_content', 'slide_images'
     ];
 
     protected $casts = [

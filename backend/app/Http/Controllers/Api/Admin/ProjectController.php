@@ -71,6 +71,7 @@ class ProjectController extends Controller
             'display_order' => $request->order ?? 0,
             'contact_email' => $request->email,
             'contact_phone' => $request->phone,
+            'youtube_link' => $request->youtube_link,
         ]);
 
         $project->translateOrNew('vi')->fill([
@@ -138,6 +139,7 @@ class ProjectController extends Controller
             'display_order' => $request->order,
             'contact_email' => $request->email,
             'contact_phone' => $request->phone,
+            'youtube_link' => $request->youtube_link,
         ]);
 
         $data = [
