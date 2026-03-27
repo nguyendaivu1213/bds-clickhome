@@ -38,6 +38,7 @@ export async function fetchAdminApi(endpoint: string, token?: string, options: R
 // ============== CÁC INTERFACE & HÀM FETCH CHO PROPERTIES ==============
 
 export interface PropertyTranslation {
+  name?: string;
   summary?: string | null;
   html_content?: string | null;
   slide_images?: any;

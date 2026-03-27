@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PropertyController extends Controller
 {
@@ -96,7 +97,7 @@ class PropertyController extends Controller
             
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Property Create Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+            Log::error('Property Create Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             return response()->json(['message' => 'Lỗi lưu sản phẩm: ' . $e->getMessage()], 500);
         }
     }
