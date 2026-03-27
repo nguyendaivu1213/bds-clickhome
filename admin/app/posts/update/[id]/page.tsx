@@ -10,6 +10,7 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
   const router = useRouter();
   const { id } = use(params);
   const [categories, setCategories] = useState<any[]>([]);
+  const [investors, setInvestors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -17,6 +18,8 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
     title: "",
     slug: "",
     category_id: "",
+    investor_id: "",
+    type: "Tin tức",
     status: "draft",
     excerpt: "",
     content: "",
@@ -24,17 +27,20 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
     seo_title: "",
     seo_description: "",
     seo_keywords: "",
+    tags: "",
   });
 
   useEffect(() => {
     const initData = async () => {
       setFetching(true);
-      const [postData, catData] = await Promise.all([
+      const [postData, catData, invData] = await Promise.all([
         fetchAdminApi(`/posts/${id}`),
-        fetchAdminApi("/categories")
+        fetchAdminApi("/categories"),
+        fetchAdminApi("/investors")
       ]);
 
       if (catData) setCategories(catData.data || catData);
+      if (invData) setInvestors(invData.data || invData);
       
       if (postData) {
         const translation = postData.translations[0] || {};
@@ -42,6 +48,8 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
           title: translation.title || "",
           slug: postData.slug || "",
           category_id: postData.category_id?.toString() || "",
+          investor_id: postData.investor_id?.toString() || "",
+          type: postData.type || "Tin tức",
           status: postData.status || "draft",
           excerpt: translation.excerpt || "",
           content: translation.content || "",
@@ -49,6 +57,7 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
           seo_title: translation.seo_title || "",
           seo_description: translation.seo_description || "",
           seo_keywords: translation.seo_keywords || "",
+          tags: postData.tags ? postData.tags.map((t: any) => t.translations?.[0]?.name || t.name).join(", ") : "",
         });
       }
       setFetching(false);
@@ -171,6 +180,16 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
                 onChange={handleEditorChange}
               />
             </div>
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">Gắn thẻ (Tags)</label>
+              <input 
+                name="tags"
+                value={formData.tags}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                placeholder="Nhập các thẻ cách nhau bằng dấu phẩy (vd: Dự án, Nổi bật, Event)"
+              />
+            </div>
           </div>
 
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
@@ -213,8 +232,36 @@ export default function UpdatePostPage({ params }: { params: Promise<{ id: strin
               >
                 <option value="">-- Chọn chuyên mục --</option>
                 {categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.translations[0]?.title || cat.id}</option>
+                  <option key={cat.id} value={cat.id}>{cat.translations?.[0]?.title || cat.id}</option>
                 ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Chủ đầu tư</label>
+              <select 
+                name="investor_id"
+                value={formData.investor_id}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="">-- Chọn chủ đầu tư --</option>
+                {investors.map(inv => (
+                  <option key={inv.id} value={inv.id}>{inv.translations?.[0]?.name || inv.id}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-600 mb-1">Loại bài viết</label>
+              <select 
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+              >
+                <option value="Tin tức">Tin tức</option>
+                <option value="Album">Album</option>
+                <option value="Sản phẩm">Sản phẩm</option>
+                <option value="Khác">Khác</option>
               </select>
             </div>
             <div>

@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useInvestor } from "@/context/InvestorContext";
-import { fetchProjects, fetchProjectArticles, type Project, type ProjectArticle } from "@/lib/api";
+import { fetchProjects, fetchPosts, type Project, type Post } from "@/lib/api";
 import { useEffect, useState } from "react";
 
 export default function Home() {
   const { investor, loading } = useInvestor();
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
-  const [articles, setArticles] = useState<ProjectArticle[]>([]);
-  const [articlesLoading, setArticlesLoading] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
 
   const investorName = investor?.name || '...';
   const shortDesc = investor?.short_description || '';
@@ -24,10 +24,10 @@ export default function Home() {
       setProjectsLoading(false);
     });
 
-    setArticlesLoading(true);
-    fetchProjectArticles(investor.id, 6).then((data) => {
-      setArticles(data);
-      setArticlesLoading(false);
+    setPostsLoading(true);
+    fetchPosts(undefined, 6, investor.id).then((data) => {
+      setPosts(data);
+      setPostsLoading(false);
     });
   }, [investor?.id]);
 
@@ -87,7 +87,7 @@ export default function Home() {
         {/* BEGIN: ProjectsGrid */}
         <div className="mb-16">
           <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-2">
-            <h2 className="text-xl font-bold text-gray-900 uppercase">Dự án tiêu biểu</h2>
+            <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide border-l-4 border-primary pl-4">Dự án tiêu biểu</h2>
             <Link href="/du-an" className="text-sm font-semibold text-gray-500 hover:text-primary uppercase tracking-wider">Xem tất cả &rarr;</Link>
           </div>
 
@@ -148,46 +148,59 @@ export default function Home() {
         {/* BEGIN: NewsGrid */}
         <div className="mb-16">
           <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-2">
-            <h2 className="text-xl font-bold text-gray-900 uppercase">Thông tin tiêu biểu</h2>
-            <Link href="/news" className="text-sm font-semibold text-gray-500 hover:text-primary uppercase tracking-wider">Xem tất cả &rarr;</Link>
+            <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide border-l-4 border-primary pl-4">Thông tin tiêu biểu</h2>
+            <Link href="/tin-tuc" className="text-sm font-semibold text-gray-500 hover:text-primary uppercase tracking-wider">Xem tất cả &rarr;</Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {articlesLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {postsLoading ? (
                [1, 2, 3].map((i) => (
                 <div key={i} className="border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm h-full">
-                  <div className="h-40 bg-gray-200 animate-pulse" />
-                  <div className="p-4 space-y-3">
-                    <div className="h-3 w-1/3 bg-gray-200 animate-pulse rounded" />
-                    <div className="h-4 w-full bg-gray-200 animate-pulse rounded" />
-                    <div className="h-4 w-4/5 bg-gray-200 animate-pulse rounded" />
+                  <div className="h-48 bg-gray-200 animate-pulse" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-4 w-1/3 bg-gray-200 animate-pulse rounded" />
+                    <div className="h-5 w-full bg-gray-200 animate-pulse rounded" />
+                    <div className="h-10 w-full bg-gray-200 animate-pulse rounded" />
                   </div>
                 </div>
               ))
-            ) : articles.length === 0 ? (
-              <p className="col-span-full text-center text-gray-400 py-8">Chưa có thông tin nào.</p>
+            ) : posts.length === 0 ? (
+              <p className="col-span-full text-center text-gray-400 py-12 border border-dashed border-gray-200 rounded-xl">Chưa có thông tin nào.</p>
             ) : (
-              articles.map((article) => (
-                <Link
-                  key={article.id}
-                  href={`/news/${article.id}`}
-                  className="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full cursor-pointer hover:shadow-md transition-shadow"
-                >
-                  <img
-                    alt={article.title || (article.translations?.[0]?.title) || 'Article'}
-                    className="w-full h-52 object-cover"
-                    src={article.banner_image_url || `https://placehold.co/600x400?text=News`}
-                  />
-                  <div className="p-5 text-[13px] flex-grow">
-                    <h3 className="font-bold text-gray-800 text-[16px] mb-3 leading-tight group-hover:text-primary transition-colors line-clamp-2">
-                      {article.title || (article.translations?.[0]?.title)}
-                    </h3>
-                    <p className="text-gray-500 line-clamp-3 text-[13px] font-medium leading-[1.6]">
-                      {article.summary || (article.translations?.[0]?.summary)}
-                    </p>
-                  </div>
-                </Link>
-              ))
+              posts.map((post) => {
+                const translation = post.translations?.[0] || {};
+                const title = translation.title || post.title;
+                const excerpt = translation.excerpt || post.excerpt;
+                const dateStr = post.published_at 
+                  ? new Date(post.published_at).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit', year: 'numeric' }) 
+                  : "";
+
+                return (
+                  <Link
+                    key={post.id}
+                    href={`/tin-tuc/${post.slug}`}
+                    className="project-card border border-gray-100 rounded-custom overflow-hidden bg-white shadow-sm flex flex-col h-full cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1 group"
+                  >
+                    <div className="relative overflow-hidden h-52">
+                      <img
+                        alt={title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        src={post.featured_image_url || post.featured_image || `https://placehold.co/400x300?text=${encodeURIComponent(title || 'Tin Tuc')}`}
+                        onError={(e) => { e.currentTarget.src = "https://placehold.co/400x300?text=Tin+Tuc" }}
+                      />
+                    </div>
+                    <div className="p-6 flex-grow flex flex-col">
+                      <p className="text-primary font-bold mb-3 text-xs tracking-wider uppercase">{dateStr}</p>
+                      <h3 className="font-bold text-gray-900 text-[16px] mb-3 leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                        {title}
+                      </h3>
+                      <p className="text-gray-600 text-[14px] line-clamp-3 leading-relaxed flex-grow">
+                        {excerpt}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

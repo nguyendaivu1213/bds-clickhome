@@ -123,6 +123,53 @@ export async function fetchSiteSettings(): Promise<SiteSettings> {
     return {};
   }
 }
+export interface CategoryTranslation {
+  title: string;
+  slug?: string;
+}
+
+export interface Category {
+  id: number;
+  data_type: string;
+  translations: CategoryTranslation[];
+  children?: Category[];
+  title?: string;
+}
+
+export async function fetchCategories(type?: string): Promise<Category[]> {
+  try {
+    const params = new URLSearchParams();
+    if (type) params.set('type', type);
+
+    const res = await fetch(`${API_BASE}/public/categories?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    
+    // Category API might reply with array or paginated response
+    const json = await res.json();
+    if (json.data && Array.isArray(json.data)) {
+      return json.data;
+    }
+    if (Array.isArray(json)) {
+      return json;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+export interface TagTranslation {
+  name: string;
+}
+
+export interface Tag {
+  id: number;
+  translations: TagTranslation[];
+  name?: string;
+}
+
 export interface PostTranslation {
   title: string;
   excerpt?: string | null;
@@ -136,15 +183,25 @@ export interface Post {
   featured_image_url?: string | null;
   published_at?: string | null;
   translations: PostTranslation[];
+  tags?: Tag[];
   // Convenience fields
   title?: string;
   excerpt?: string | null;
 }
 
-export async function fetchPosts(categorySlug?: string, perPage = 4): Promise<Post[]> {
+export async function fetchPosts(
+  categorySlug?: string, 
+  perPage = 4, 
+  investorId?: number, 
+  type?: string,
+  categoryId?: number | string
+): Promise<Post[]> {
   try {
     const params = new URLSearchParams({ per_page: String(perPage) });
     if (categorySlug) params.set('category_slug', categorySlug);
+    if (investorId) params.set('investor_id', String(investorId));
+    if (type) params.set('type', type);
+    if (categoryId) params.set('category_id', String(categoryId));
 
     const res = await fetch(`${API_BASE}/public/posts?${params.toString()}`, {
       cache: 'no-store',
@@ -154,6 +211,18 @@ export async function fetchPosts(categorySlug?: string, perPage = 4): Promise<Po
     return json.data ?? [];
   } catch {
     return [];
+  }
+}
+
+export async function fetchPost(idOrSlug: string): Promise<Post | null> {
+  try {
+    const res = await fetch(`${API_BASE}/public/posts/${idOrSlug}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
 }
 export interface ProjectArticleTranslation {

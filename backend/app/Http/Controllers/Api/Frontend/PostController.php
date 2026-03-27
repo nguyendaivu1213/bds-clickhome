@@ -22,6 +22,14 @@ class PostController extends Controller
             });
         }
 
+        if ($investorId = $request->query('investor_id')) {
+            $query->where('investor_id', $investorId);
+        }
+
+        if ($type = $request->query('type')) {
+            $query->where('type', $type);
+        }
+
         $posts = $query->latest('published_at')
             ->paginate($request->query('per_page', 12));
 

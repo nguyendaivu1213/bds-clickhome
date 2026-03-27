@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
@@ -12,7 +13,7 @@ class PostController extends Controller
      */
     public function index()
     {
-        return response()->json(\App\Models\Post::with('translations', 'category', 'site', 'author')->latest()->paginate(10));
+        return response()->json(\App\Models\Post::with('translations', 'category', 'site', 'author', 'tags.translations')->latest()->paginate(10));
     }
 
     public function store(Request $request)
@@ -22,9 +23,12 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'status' => 'required|in:published,draft',
             'slug' => 'required|string',
+            'investor_id' => 'nullable|exists:investors,id',
+            'type' => 'nullable|string|max:50',
+            'tags' => 'nullable|string',
         ]);
 
-        $data = $request->except(['title', 'excerpt', 'content']);
+        $data = $request->except(['title', 'excerpt', 'content', 'tags']);
         $data['site_id'] = 1;
         $data['author_id'] = auth()->id() ?? 1;
 
@@ -55,12 +59,32 @@ class PostController extends Controller
         
         $post->save();
 
-        return response()->json($post->load('translations'), 201);
+        if ($request->has('tags')) {
+            $tagNames = array_filter(array_map('trim', explode(',', $request->tags)));
+            $tagIds = [];
+            foreach ($tagNames as $name) {
+                // Find or create tag by translation
+                $tagTranslation = \App\Models\TagTranslation::where('locale', 'vi')->where('name', $name)->first();
+                if ($tagTranslation) {
+                    $tagIds[] = $tagTranslation->tag_id;
+                } else {
+                    $tag = \App\Models\Tag::create([
+                        'slug' => Str::slug($name) . '-' . time() 
+                    ]);
+                    $tag->translateOrNew('vi')->fill(['name' => $name]);
+                    $tag->save();
+                    $tagIds[] = $tag->id;
+                }
+            }
+            $post->tags()->sync($tagIds);
+        }
+
+        return response()->json($post->load('translations', 'tags.translations'), 201);
     }
 
     public function show(string $id)
     {
-        return response()->json(\App\Models\Post::with('translations', 'category', 'author')->findOrFail($id));
+        return response()->json(\App\Models\Post::with('translations', 'category', 'author', 'tags.translations')->findOrFail($id));
     }
 
     public function update(Request $request, string $id)
@@ -71,12 +95,15 @@ class PostController extends Controller
             'title' => 'required|string|max:255',
             'status' => 'required|in:published,draft',
             'slug' => 'required|string',
+            'investor_id' => 'nullable|exists:investors,id',
+            'type' => 'nullable|string|max:50',
+            'tags' => 'nullable|string',
         ]);
 
         $slug = $request->slug;
         $exists = \App\Models\Post::where('slug', $slug)->where('id', '!=', $id)->exists();
         
-        $data = $request->except(['title', 'excerpt', 'content']);
+        $data = $request->except(['title', 'excerpt', 'content', 'tags']);
         if ($exists) {
             $data['slug'] = $slug . '-' . $id;
         }
@@ -94,7 +121,26 @@ class PostController extends Controller
         
         $post->save();
 
-        return response()->json($post->load('translations'));
+        if ($request->has('tags')) {
+            $tagNames = array_filter(array_map('trim', explode(',', $request->tags)));
+            $tagIds = [];
+            foreach ($tagNames as $name) {
+                $tagTranslation = \App\Models\TagTranslation::where('locale', 'vi')->where('name', $name)->first();
+                if ($tagTranslation) {
+                    $tagIds[] = $tagTranslation->tag_id;
+                } else {
+                    $tag = \App\Models\Tag::create([
+                        'slug' => Str::slug($name) . '-' . time()
+                    ]);
+                    $tag->translateOrNew('vi')->fill(['name' => $name]);
+                    $tag->save();
+                    $tagIds[] = $tag->id;
+                }
+            }
+            $post->tags()->sync($tagIds);
+        }
+
+        return response()->json($post->load('translations', 'tags.translations'));
     }
 
     public function destroy(string $id)

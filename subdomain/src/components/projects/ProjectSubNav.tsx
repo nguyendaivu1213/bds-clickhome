@@ -4,17 +4,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function ProjectSubNav({ slug }: { slug: string }) {
+export default function ProjectSubNav({ slug, projectName }: { slug: string, projectName?: string }) {
   const [isSticky, setIsSticky] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
+
   const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      // Main header is usually 80px (h-20)
-      if (window.scrollY > 80) {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > 80) {
         setIsSticky(true);
       } else {
         setIsSticky(false);
+      }
+
+      if (currentScrollY > 100) {
+        setIsHeaderHidden(true);
+      } else {
+        setIsHeaderHidden(false);
       }
     };
 
@@ -23,7 +32,7 @@ export default function ProjectSubNav({ slug }: { slug: string }) {
   }, []);
 
   const navLinks = [
-    { name: "Tổng quan", path: "tong-quan" },
+    { name: projectName || "Tổng quan", path: "tong-quan" },
     { name: "Vị trí", path: "vi-tri" },
     { name: "Phân khu", path: "phan-khu" },
     { name: "Layout", path: "layout" },
@@ -34,7 +43,7 @@ export default function ProjectSubNav({ slug }: { slug: string }) {
   ];
 
   return (
-    <div className={`w-full bg-[#111] text-white transition-all z-40 ${isSticky ? 'fixed top-20 shadow-lg' : 'relative'}`}>
+    <div className={`w-full bg-[#111] text-white transition-all duration-300 z-40 ${isSticky ? `fixed shadow-lg ${isHeaderHidden ? 'top-0' : 'top-20'}` : 'relative'}`}>
       <div className="max-w-7xl mx-auto px-4 overflow-x-auto no-scrollbar">
         <ul className="flex space-x-6 whitespace-nowrap text-[13px] font-bold uppercase tracking-wide py-4">
           {navLinks.map((link) => {
