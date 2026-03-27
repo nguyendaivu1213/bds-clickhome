@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { useSiteSettings } from '@/context/SiteSettingsContext';
 import { useInvestor } from '@/context/InvestorContext';
 
@@ -11,8 +12,24 @@ export default function MainHeader() {
   const logoUrl = settings.logo || null;
   const siteName = settings.site_name || 'BDS ClickHome';
 
+  const [isHidden, setIsHidden] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > 100) {
+        setIsHidden(true);
+      } else {
+        setIsHidden(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="border-b border-gray-100 sticky top-0 bg-white z-50">
+    <header className={`border-b border-gray-100 sticky top-0 bg-white z-50 transition-transform duration-300 ${isHidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0">
@@ -44,7 +61,7 @@ export default function MainHeader() {
           <Link href="/du-an" className="hover:text-primary">
             Dự Án
           </Link>
-          <Link href="/news" className="hover:text-primary">
+          <Link href="/tin-tuc" className="hover:text-primary">
             Thông Tin
           </Link>
           <Link href="/contact" className="hover:text-primary">

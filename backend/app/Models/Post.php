@@ -15,6 +15,8 @@ class Post extends Model implements TranslatableContract
         'site_id',
         'category_id',
         'author_id',
+        'investor_id',
+        'type',
         'slug',
         'status',
         'featured_image',
@@ -32,6 +34,11 @@ class Post extends Model implements TranslatableContract
     public function site()
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function investor()
+    {
+        return $this->belongsTo(Investor::class);
     }
 
     public function category()

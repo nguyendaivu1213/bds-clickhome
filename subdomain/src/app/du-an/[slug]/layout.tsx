@@ -32,7 +32,7 @@ export default function ProjectLayout({
 
     return (
         <div className="bg-white">
-            <ProjectSubNav slug={slug} />
+            <ProjectSubNav slug={slug} projectName={project?.name || undefined} />
 
             {/* Hero Banner Section - Only on tong-quan */}
             {showBanner && (
