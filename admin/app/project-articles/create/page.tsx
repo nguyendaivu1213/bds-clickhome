@@ -11,6 +11,7 @@ export default function CreateProjectArticlePage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<{ type: "banner" | "slide"; index?: number }>({ type: "banner" });
   const [formData, setFormData] = useState({
     project_id: "",
     type: "overview",
@@ -23,6 +24,7 @@ export default function CreateProjectArticlePage() {
     page_title: "",
     summary: "",
     html_content: "",
+    slide_images: [] as { image: string; title: string }[],
   });
 
   useEffect(() => {
@@ -42,6 +44,33 @@ export default function CreateProjectArticlePage() {
 
   const handleEditorChange = (content: string) => {
     setFormData(prev => ({ ...prev, html_content: content }));
+  };
+
+  const handleAddSlide = () => {
+    setFormData(prev => ({
+      ...prev,
+      slide_images: [...prev.slide_images, { image: "", title: "" }]
+    }));
+  };
+
+  const handleRemoveSlide = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      slide_images: prev.slide_images.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSlideChange = (index: number, field: "image" | "title", value: string) => {
+    setFormData(prev => {
+      const newSlides = [...prev.slide_images];
+      newSlides[index] = { ...newSlides[index], [field]: value };
+      return { ...prev, slide_images: newSlides };
+    });
+  };
+
+  const openPicker = (type: "banner" | "slide", index?: number) => {
+    setPickerTarget({ type, index });
+    setPickerOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,7 +138,7 @@ export default function CreateProjectArticlePage() {
               <label className="block text-sm font-bold text-slate-700 mb-1">Hình ảnh banner</label>
               <div className="flex gap-4 items-start">
                 <div 
-                  onClick={() => setPickerOpen(true)}
+                  onClick={() => openPicker("banner")}
                   className="flex-shrink-0 w-32 h-32 rounded-lg border-2 border-dashed border-slate-200 hover:border-primary flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-slate-50 transition-all"
                 >
                   {formData.banner_image ? (
@@ -132,7 +161,59 @@ export default function CreateProjectArticlePage() {
                 </div>
               </div>
             </div>
-            <div>
+
+            {/* Slide Images Section */}
+            <div className="pt-4 border-t border-slate-100">
+              <div className="flex justify-between items-center mb-4">
+                <label className="block text-sm font-bold text-slate-700">Danh sách hình ảnh (Slide)</label>
+                <button 
+                  type="button"
+                  onClick={handleAddSlide}
+                  className="flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-dark transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">add_circle</span>
+                  Thêm hình ảnh
+                </button>
+              </div>
+              
+              {formData.slide_images.length === 0 ? (
+                <div className="text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-400 text-sm italic">
+                  Chưa có hình ảnh nào trong danh sách
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {formData.slide_images.map((slide, index) => (
+                    <div key={index} className="relative group bg-white p-2 rounded-xl border border-slate-100 shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                      <div 
+                        onClick={() => openPicker("slide", index)}
+                        className="aspect-video rounded-lg bg-slate-50 border border-slate-100 overflow-hidden cursor-pointer flex items-center justify-center mb-2"
+                      >
+                        {slide.image ? (
+                          <img src={slide.image} alt={`Slide ${index}`} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-slate-300">image</span>
+                        )}
+                      </div>
+                      <input 
+                        value={slide.title}
+                        onChange={(e) => handleSlideChange(index, "title", e.target.value)}
+                        placeholder="Tiêu đề ảnh..."
+                        className="w-full text-[11px] font-bold text-slate-700 bg-slate-50 border-none rounded px-2 py-1 outline-none focus:ring-1 focus:ring-primary/30"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveSlide(index)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md hover:bg-red-600"
+                      >
+                        <span className="material-symbols-outlined text-xs">close</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-slate-100">
               <label className="block text-sm font-bold text-slate-700 mb-1">Tóm tắt</label>
               <textarea 
                 name="summary"
@@ -254,10 +335,14 @@ export default function CreateProjectArticlePage() {
         isOpen={pickerOpen}
         onClose={() => setPickerOpen(false)}
         onSelect={(url) => {
-          setFormData(prev => ({ ...prev, banner_image: url }));
+          if (pickerTarget.type === "banner") {
+            setFormData(prev => ({ ...prev, banner_image: url }));
+          } else if (pickerTarget.type === "slide" && pickerTarget.index !== undefined) {
+            handleSlideChange(pickerTarget.index, "image", url);
+          }
           setPickerOpen(false);
         }}
-        title="Chọn hình banner bài viết"
+        title={pickerTarget.type === "banner" ? "Chọn hình banner bài viết" : "Chọn hình ảnh cho slide"}
       />
     </div>
   );

@@ -21,6 +21,27 @@ import Indent from '@weiruo/tiptap-extension-indent';
 import { useCallback, useState, useEffect } from 'react';
 import MediaPicker from './MediaPicker';
 
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      backgroundColor: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-background-color'),
+        renderHTML: attributes => {
+          if (!attributes.backgroundColor) {
+            return {}
+          }
+          return {
+            'data-background-color': attributes.backgroundColor,
+            style: `background-color: ${attributes.backgroundColor}`,
+          }
+        },
+      },
+    }
+  },
+})
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -73,6 +94,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
       }),
       TextStyle,
       Color,
@@ -90,7 +112,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
       }),
       TableRow,
       TableHeader,
-      TableCell,
+      CustomTableCell,
       FontFamily,
       FontSize,
       LineHeight.configure({
@@ -325,6 +347,13 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
           isActive={editor.isActive({ textAlign: 'right' })}
           disabled={isSourceView}
         />
+        <MenuButton
+          title="Justify"
+          icon="format_align_justify"
+          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+          isActive={editor.isActive({ textAlign: 'justify' })}
+          disabled={isSourceView}
+        />
         <div className="w-px h-6 bg-slate-200 mx-1" />
 
         <MenuButton
@@ -359,6 +388,21 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
           isActive={editor.isActive('table')}
           disabled={isSourceView}
         />
+        
+        {/* Table Background Color Picker */}
+        <div className="relative group flex items-center h-9 px-1 rounded-lg hover:bg-slate-100 transition-colors" title="Table Cell Background Color">
+           <span className="material-symbols-outlined text-[20px] text-slate-600 mr-1">format_color_fill</span>
+           <input
+             type="color"
+             onInput={(e) => {
+               if (editor.isActive('table')) {
+                 editor.chain().focus().updateAttributes('tableCell', { backgroundColor: (e.target as HTMLInputElement).value }).run();
+               }
+             }}
+             disabled={isSourceView}
+             className="w-5 h-5 cursor-pointer disabled:opacity-30 p-0 border-0 bg-transparent"
+           />
+        </div>
         
         <div className="w-px h-6 bg-slate-200 mx-1" />
         <MenuButton

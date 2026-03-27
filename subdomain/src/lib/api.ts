@@ -161,6 +161,7 @@ export interface ProjectArticleTranslation {
   page_title?: string | null;
   summary?: string | null;
   html_content?: string | null;
+  slide_images?: { image: string; title: string; image_url?: string }[];
 }
 
 export interface ProjectArticle {

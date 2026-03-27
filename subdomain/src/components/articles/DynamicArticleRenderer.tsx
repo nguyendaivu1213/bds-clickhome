@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export default function DynamicArticleRenderer({ article }: { article: ProjectArticle }) {
   const trans = article.translations?.[0] || {};
-  const { title, summary, html_content } = trans;
+  const { title, summary, html_content, slide_images } = trans;
   const layout = article.layout_type || "basic_image";
   const targetLink = article.target_link;
 
@@ -13,6 +13,24 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
       return <Link href={targetLink} className={`block group ${className || ""}`}>{children}</Link>;
     }
     return <div className={className}>{children}</div>;
+  };
+
+  const SlideSection = () => {
+    if (!slide_images || slide_images.length === 0) return null;
+    return (
+      <div className="mt-16 pt-10 border-t border-gray-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {slide_images.map((slide, idx) => (
+            <div key={idx} className="group relative bg-white rounded-2xl border border-gray-100 p-2 shadow-sm hover:shadow-md transition-shadow">
+               <div className="aspect-square bg-gray-50 rounded-xl overflow-hidden mb-3">
+                  <img src={slide.image_url || slide.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={slide.title || "Slide"} />
+               </div>
+               {slide.title && <h4 className="text-[11px] font-bold text-center text-gray-600 italic px-1 line-clamp-1">{slide.title}</h4>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   switch (layout) {
@@ -50,6 +68,8 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                   )}
                 </div>
               )}
+              
+              <SlideSection />
 
               {targetLink && (
                 <div className="text-center mt-8 pt-4">
@@ -85,6 +105,7 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                   <img src={article.banner_image_url || "https://placehold.co/600x400/eeeeee/999999"} className="w-full h-full object-cover" alt="Slide 3" />
                 </div>
               </div>
+              <SlideSection />
               {targetLink && (
                 <div className="text-center mt-6">
                   <span className="inline-block px-8 py-3 bg-primary text-white font-bold rounded-lg shadow-md hover:bg-primary-dark transition-colors">Khám phá ngay</span>
@@ -123,6 +144,7 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                 </div>
               ))}
             </div>
+            <SlideSection />
             {targetLink && (
               <div className="text-center mt-8 md:hidden pointer-events-auto">
                 <Link href={targetLink} className="inline-block px-8 py-3 bg-primary text-white font-bold rounded-lg shadow-md">Xem tất cả</Link>
@@ -152,6 +174,7 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                   <img src={article.banner_image_url || "https://placehold.co/800x800/1e293b/475569"} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" alt="Price List/Layout" />
                 </div>
               </div>
+              <SlideSection />
             </LinkWrapper>
           </div>
         </section>
@@ -176,6 +199,10 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
             {summary && !summary.includes("<iframe") && !summary.startsWith("http") && (
               <p className="text-lg text-white/80 mt-8 max-w-3xl mx-auto font-medium">{summary}</p>
             )}
+
+            <div className="max-w-4xl mx-auto">
+              <SlideSection />
+            </div>
 
             {targetLink && (
               <div className="mt-12">
@@ -203,6 +230,9 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                   <div className="prose prose-slate max-w-none text-gray-700 leading-loose text-lg" dangerouslySetInnerHTML={{ __html: html_content }} />
                 </div>
               )}
+              <div className="max-w-7xl mx-auto px-4">
+                 <SlideSection />
+              </div>
               {targetLink && (
                 <div className="text-center mt-12">
                   <span className="inline-block px-10 py-4 bg-primary text-white font-bold rounded-full shadow-lg hover:bg-primary-dark transition-colors">Xem chi tiết</span>
@@ -240,6 +270,7 @@ export default function DynamicArticleRenderer({ article }: { article: ProjectAr
                 )}
               </div>
             </LinkWrapper>
+            <SlideSection />
           </div>
         </section>
       );
