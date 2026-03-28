@@ -72,6 +72,19 @@ class ProjectController extends Controller
             $project->setAttribute('slide_images', $slides);
         }
 
+        // Transform amenities image URLs
+        $amenities = $project->amenities ?? [];
+        if (is_array($amenities)) {
+            foreach ($amenities as &$amenity) {
+                if (isset($amenity['image']) && $amenity['image']) {
+                    $img = $amenity['image'];
+                    $amenity['image_url'] = (str_starts_with($img, 'http') ? $img : \Storage::disk('public')->url($img));
+                }
+            }
+            unset($amenity);
+            $project->setAttribute('amenities', $amenities);
+        }
+
         return response()->json($project);
     }
 }

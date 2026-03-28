@@ -26,6 +26,7 @@ export default function ProjectSectionPage({
     const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
     const [properties, setProperties] = useState<PropertyItem[]>([]);
     const [productOffset, setProductOffset] = useState<number>(0);
+    const [amenityOffset, setAmenityOffset] = useState<number>(0);
     const PRODUCTS_PER_PAGE = 3;
 
     const displayImages = useMemo(() => {
@@ -90,63 +91,65 @@ export default function ProjectSectionPage({
             return (
                 <>
                     {/* NEW Full-width Image Slider with Slide Effect */}
-                    <section className="py-10 bg-white">
-                        <div className="max-w-7xl mx-auto px-4">
-                            <div className="relative rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px] lg:h-[600px] group bg-gray-100">
-                                <div 
-                                    className="flex h-full transition-transform duration-500 ease-in-out"
-                                    style={{ transform: `translateX(-${activeSlideIndex * 100}%)` }}
-                                >
-                                    {displayImages.map((img, idx) => (
-                                        <div key={idx} className="w-full h-full flex-shrink-0">
-                                            <img
-                                                src={img}
-                                                alt={`${projectName} slide ${idx + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                
-                                {/* Prev Button - SVG Icon */}
-                                <button 
-                                    onClick={() => setActiveSlideIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                                    </svg>
-                                </button>
-                                
-                                {/* Next Button - SVG Icon */}
-                                <button 
-                                    onClick={() => setActiveSlideIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                                    </svg>
-                                </button>
+                    {project?.banner_type === 'slide_banner' && (
+                        <section className="py-10 bg-white">
+                            <div className="max-w-7xl mx-auto px-4">
+                                <div className="relative rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px] lg:h-[600px] group bg-gray-100">
+                                    <div 
+                                        className="flex h-full transition-transform duration-500 ease-in-out"
+                                        style={{ transform: `translateX(-${activeSlideIndex * 100}%)` }}
+                                    >
+                                        {displayImages.map((img, idx) => (
+                                            <div key={idx} className="w-full h-full flex-shrink-0">
+                                                <img
+                                                    src={img}
+                                                    alt={`${projectName} slide ${idx + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    {/* Prev Button - SVG Icon */}
+                                    <button 
+                                        onClick={() => setActiveSlideIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                                        </svg>
+                                    </button>
+                                    
+                                    {/* Next Button - SVG Icon */}
+                                    <button 
+                                        onClick={() => setActiveSlideIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                        </svg>
+                                    </button>
 
-                                {/* Pagination 1, 2, 3... */}
-                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 z-10">
-                                    {displayImages.map((_, idx) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => setActiveSlideIndex(idx)}
-                                            className={`size-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center border ${
-                                                activeSlideIndex === idx 
-                                                ? "bg-[#e2cb83] text-white border-[#e2cb83] shadow-md scale-110" 
-                                                : "bg-white/80 text-gray-700 border-white/80 hover:bg-white"
-                                            }`}
-                                        >
-                                            {idx + 1}
-                                        </button>
-                                    ))}
+                                    {/* Pagination 1, 2, 3... */}
+                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 z-10">
+                                        {displayImages.map((_, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setActiveSlideIndex(idx)}
+                                                className={`size-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center border ${
+                                                    activeSlideIndex === idx 
+                                                    ? "bg-[#e2cb83] text-white border-[#e2cb83] shadow-md scale-110" 
+                                                    : "bg-white/80 text-gray-700 border-white/80 hover:bg-white"
+                                                }`}
+                                            >
+                                                {idx + 1}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+                    )}
 
                     {/* NEW Stat Cards */}
                     <section className="pb-12 bg-white border-b border-gray-100">
@@ -363,6 +366,102 @@ export default function ProjectSectionPage({
                             ))}
                         </div>
                     )}
+
+                    {/* Amenities Section (Tiện Ích) */}
+                    {(() => {
+                        const amenities: { image: string; image_url?: string; title: string; desc: string; isHighlight?: boolean }[] = (translation?.amenities as any) || [];
+                        if (!amenities || amenities.length === 0) return null;
+                        const AMENITY_PAGE = 4;
+                        const canPrev = amenityOffset > 0;
+                        const canNext = amenityOffset + AMENITY_PAGE < amenities.length;
+                        const visible = amenities.slice(amenityOffset, amenityOffset + AMENITY_PAGE);
+
+                        return (
+                            <section className="py-16 bg-white border-t border-gray-100">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    {/* Header */}
+                                    <div className="text-center mb-10">
+                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1">Tiện Ích</h2>
+                                        <p className="text-gray-400 text-sm">Hệ thống tiện ích đẳng cấp phiên bản thượng lưu</p>
+                                        <div className="w-10 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
+                                    </div>
+
+                                    {/* Slider */}
+                                    <div className="relative">
+                                        {/* Prev */}
+                                        {canPrev && (
+                                            <button onClick={() => setAmenityOffset(o => Math.max(0, o - 1))} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                            </button>
+                                        )}
+
+                                        {/* Draggable track */}
+                                        <div
+                                            className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none cursor-grab active:cursor-grabbing"
+                                            onMouseDown={(e) => {
+                                                const startX = e.clientX;
+                                                let moved = false;
+                                                const onMove = (ev: MouseEvent) => { if (Math.abs(ev.clientX - startX) > 10) moved = true; };
+                                                const onUp = (ev: MouseEvent) => {
+                                                    document.removeEventListener('mousemove', onMove);
+                                                    document.removeEventListener('mouseup', onUp);
+                                                    if (!moved) return;
+                                                    const diff = ev.clientX - startX;
+                                                    if (diff < -40 && amenityOffset + AMENITY_PAGE < amenities.length) setAmenityOffset(o => o + 1);
+                                                    if (diff > 40 && amenityOffset > 0) setAmenityOffset(o => Math.max(0, o - 1));
+                                                };
+                                                document.addEventListener('mousemove', onMove);
+                                                document.addEventListener('mouseup', onUp);
+                                            }}
+                                        >
+                                            {visible.map((am, idx) => {
+                                                const imgSrc = am.image_url || (am.image && am.image.startsWith('http') ? am.image : am.image ? `/storage/${am.image}` : null);
+                                                return (
+                                                    <div key={amenityOffset + idx} className="group rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 bg-white">
+                                                        <div className="h-48 overflow-hidden bg-gray-100">
+                                                            {imgSrc ? (
+                                                                <img src={imgSrc} alt={am.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3h18M3 3v18" /></svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {am.title && (
+                                                            <div className="p-3">
+                                                                <p className="text-[#62908f] font-semibold text-sm leading-snug">{am.title}</p>
+                                                                {am.desc && <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{am.desc}</p>}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                            {/* Fill empty slots */}
+                                            {visible.length < AMENITY_PAGE && Array.from({ length: AMENITY_PAGE - visible.length }).map((_, i) => (
+                                                <div key={`ae-${i}`} className="hidden md:block" />
+                                            ))}
+                                        </div>
+
+                                        {/* Next */}
+                                        {canNext && (
+                                            <button onClick={() => setAmenityOffset(o => o + 1)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Progress dots */}
+                                    {amenities.length > AMENITY_PAGE && (
+                                        <div className="flex justify-center gap-1.5 mt-8">
+                                            {Array.from({ length: amenities.length - AMENITY_PAGE + 1 }).map((_, i) => (
+                                                <button key={i} onClick={() => setAmenityOffset(i)} className={`rounded-full transition-all ${amenityOffset === i ? 'w-5 h-2 bg-[#e2cb83]' : 'w-2 h-2 bg-gray-200 hover:bg-gray-300'}`} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        );
+                    })()}
                 </>
             );
         case "vi-tri":

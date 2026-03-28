@@ -18,6 +18,7 @@ class SettingController extends Controller
             'logo', 'site_name', 'tagline', 'address',
             'phone', 'email', 'support_email', 'facebook', 'youtube',
             'zalo', 'hotline', 'copyright',
+            'zalo_phone', 'facebook_page_id',
         ];
 
         $rows = SiteSetting::where('site_id', 1)

@@ -45,6 +45,7 @@ const DEFAULT_FORM_DATA = {
   tags: "",
   perspectiveImage: "",
   footerImage: "",
+  bannerType: "full_banner",
   slogan: "",
   shortDesc: "",
   fullDesc: "",
@@ -165,7 +166,11 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const [formData, setFormData] = useState(() => {
     if (!initialData) return DEFAULT_FORM_DATA;
-    return { ...DEFAULT_FORM_DATA, ...initialData };
+    return { 
+      ...DEFAULT_FORM_DATA, 
+      ...initialData,
+      bannerType: initialData.banner_type || initialData.bannerType || "full_banner"
+    };
   });
 
   const mainCategories = categories.filter(c => c.parent_id === null && (c.data_type === "Dự án" || c.data_type === "Trang dự án"));
@@ -1071,6 +1076,60 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                       )}
                    </div>
                 </div>
+             </div>
+          </section>
+
+          <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Loại Banner</h3>
+             <div className="grid grid-cols-1 gap-3">
+               <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                 formData.bannerType === 'full_banner'
+                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                   : 'border-slate-100 hover:border-primary/30'
+               }`}>
+                 <input
+                   type="radio"
+                   name="bannerType"
+                   value="full_banner"
+                   checked={formData.bannerType === 'full_banner'}
+                   onChange={(e) => handleInputChange('bannerType', e.target.value)}
+                   className="sr-only"
+                 />
+                 <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                   formData.bannerType === 'full_banner' ? 'border-primary' : 'border-slate-300'
+                 }`}>
+                   {formData.bannerType === 'full_banner' && <span className="size-2 rounded-full bg-primary block" />}
+                 </span>
+                 <div>
+                   <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">panorama</span>
+                   <span className="text-sm font-bold text-slate-800">Full Banner</span>
+                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">Ảnh banner toàn màn hình</p>
+                 </div>
+               </label>
+               <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                 formData.bannerType === 'slide_banner'
+                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                   : 'border-slate-100 hover:border-primary/30'
+               }`}>
+                 <input
+                   type="radio"
+                   name="bannerType"
+                   value="slide_banner"
+                   checked={formData.bannerType === 'slide_banner'}
+                   onChange={(e) => handleInputChange('bannerType', e.target.value)}
+                   className="sr-only"
+                 />
+                 <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                   formData.bannerType === 'slide_banner' ? 'border-primary' : 'border-slate-300'
+                 }`}>
+                   {formData.bannerType === 'slide_banner' && <span className="size-2 rounded-full bg-primary block" />}
+                 </span>
+                 <div>
+                   <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">view_carousel</span>
+                   <span className="text-sm font-bold text-slate-800">Slide Banner</span>
+                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">Hiển thị dạng slideshow</p>
+                 </div>
+               </label>
              </div>
           </section>
         </div>

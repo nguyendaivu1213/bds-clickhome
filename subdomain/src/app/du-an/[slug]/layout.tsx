@@ -25,7 +25,7 @@ export default function ProjectLayout({
 
     const segments = useSelectedLayoutSegments();
     const section = segments[0];
-    const showBanner = section === "tong-quan" || !section;
+    const showBanner = (section === "tong-quan" || !section) && (!project || project.banner_type !== "slide_banner");
 
     const projectName = project?.name || slug.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     const projectDesc = project?.short_description || `${projectName} là tổ hợp căn hộ cao cấp, biệt thự, liền kề, shophouse, trường học nằm trong khu đô thị đẳng cấp. Lấy cảm hứng từ hình tượng thiên nhiên tinh khiết mang đến một cuộc sống an lành, ngập tràn hạnh phúc.`;

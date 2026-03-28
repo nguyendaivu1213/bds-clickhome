@@ -12,7 +12,7 @@ class Project extends Model implements TranslatableContract
 
     protected $fillable = [
         'site_id', 'investor_id', 'primary_category_id', 
-        'perspective_image', 'footer_image', 'publish_date', 
+        'perspective_image', 'footer_image', 'banner_type', 'publish_date', 
         'google_map', 'latitude', 'longitude', 'location_image', 
         'sample_apartment_360', 'living_room_360', 'bedroom_360', 'balcony_360', 'amenities_360',
         'contact_email', 'contact_phone', 'status', 'is_published', 'display_order', 'youtube_link'

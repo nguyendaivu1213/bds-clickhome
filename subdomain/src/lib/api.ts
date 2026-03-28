@@ -63,6 +63,7 @@ export interface Project {
   id: number;
   slug?: string;
   investor_id?: number;
+  banner_type?: string | null;
   perspective_image?: string | null;
   perspective_image_url?: string | null;
   google_map?: string | null;

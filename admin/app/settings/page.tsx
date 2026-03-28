@@ -32,6 +32,8 @@ export default function SettingsPage() {
     support_email: 'support@clickhomes.vn',
     address: '',
     logo: '',
+    zalo_phone: '',
+    facebook_page_id: '',
     dynamic_selections: []
   });
 
@@ -54,6 +56,8 @@ export default function SettingsPage() {
           support_email: data.support_email || 'support@clickhomes.vn',
           address: data.address || '',
           logo: data.logo || '',
+          zalo_phone: data.zalo_phone || '',
+          facebook_page_id: data.facebook_page_id || '',
           dynamic_selections: data.dynamic_selections || []
         });
       }
@@ -325,6 +329,44 @@ export default function SettingsPage() {
                   onChange={e => setSettings({...settings, address: e.target.value})}
                 />
                 <p className="text-xs text-slate-400">Địa chỉ này sẽ hiển thị ở phần Footer của website.</p>
+              </div>
+
+              {/* Chat Icon Config */}
+              <div className="flex flex-col gap-4 bg-blue-50 border border-blue-100 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-blue-500 text-xl">chat</span>
+                  <h3 className="text-sm font-bold text-blue-700 uppercase tracking-wide">Cấu Hình Icon Chat (Messenger &amp; Zalo)</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded-full bg-[#0068ff]" />
+                      Số Điện Thoại Zalo
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-slate-200 rounded-lg h-11 px-4 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none text-slate-700 bg-white"
+                      placeholder="Vd: 0901234567"
+                      value={settings.zalo_phone}
+                      onChange={e => setSettings({...settings, zalo_phone: e.target.value})}
+                    />
+                    <p className="text-xs text-slate-400">Dùng để tạo link zalo.me/&lt;số&gt; trên widget chat góc phải.</p>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-1">
+                      <span className="inline-block w-3 h-3 rounded-full bg-[#0099ff]" />
+                      Facebook Page ID / Username
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-slate-200 rounded-lg h-11 px-4 focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none text-slate-700 bg-white"
+                      placeholder="Vd: YourPageName hoặc 123456789"
+                      value={settings.facebook_page_id}
+                      onChange={e => setSettings({...settings, facebook_page_id: e.target.value})}
+                    />
+                    <p className="text-xs text-slate-400">Page ID hoặc username Facebook dùng để tạo link m.me/&lt;id&gt;.</p>
+                  </div>
+                </div>
               </div>
             </>
           )}
