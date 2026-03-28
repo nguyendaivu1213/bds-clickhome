@@ -58,7 +58,7 @@ class PropertyController extends Controller
             'main_image' => 'nullable|string',
             'video_url' => 'nullable|string',
             'status' => 'required|string|in:active,inactive,sold,available',
-            'display_order' => 'integer|default:0',
+            'display_order' => 'nullable|integer',
             
             // Translated fields
             'en.name' => 'nullable|string',
