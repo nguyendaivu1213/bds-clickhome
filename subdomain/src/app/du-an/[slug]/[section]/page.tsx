@@ -23,6 +23,7 @@ export default function ProjectSectionPage({
     const [zones, setZones] = useState<ProjectZone[]>([]);
     const [active360, setActive360] = useState<string | null>(null);
     const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
+    const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
 
     const displayImages = useMemo(() => {
         const slideMedia = project?.slide_images || [];
@@ -227,6 +228,64 @@ export default function ProjectSectionPage({
                             </div>
                         </div>
                     </section>
+
+                    {/* Floor Plan Section (Mặt Bằng) */}
+                    {(() => {
+                        const masterPlan: { image: string; title: string; desc: string }[] = (translation?.master_plan as any) || [];
+                        if (!masterPlan || masterPlan.length === 0) return null;
+                        const activePlan = masterPlan[activePlanIndex] || masterPlan[0];
+                        const imageUrl = (activePlan as any).image_url || activePlan.image;
+                        return (
+                            <section className="py-16 bg-gray-50 border-t border-gray-100">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    {/* Header */}
+                                    <div className="text-center mb-10">
+                                        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-tight mb-2">Mặt Bằng</h2>
+                                        <p className="text-gray-500 text-sm">Thiết kế chi tiết các tầng</p>
+                                        <div className="w-12 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
+                                    </div>
+
+                                    {/* Button tabs */}
+                                    <div className="flex flex-wrap justify-center gap-2 mb-8">
+                                        {masterPlan.map((plan, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setActivePlanIndex(idx)}
+                                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all border ${
+                                                    activePlanIndex === idx
+                                                        ? "bg-[#e2cb83] text-white border-[#e2cb83] shadow-md"
+                                                        : "bg-white text-gray-600 border-gray-200 hover:border-[#e2cb83] hover:text-[#c9b26e]"
+                                                }`}
+                                            >
+                                                {plan.title || `Mặt bằng ${idx + 1}`}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Active plan image */}
+                                    {imageUrl ? (
+                                        <div className="relative rounded-2xl overflow-hidden shadow-xl border border-gray-100 bg-gray-100">
+                                            <img
+                                                key={activePlanIndex}
+                                                src={imageUrl}
+                                                alt={activePlan.title || 'Mặt bằng dự án'}
+                                                className="w-full h-auto object-contain transition-opacity duration-300"
+                                            />
+                                            {activePlan.desc && (
+                                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-8 py-6">
+                                                    <p className="text-white text-sm font-medium">{activePlan.desc}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-64 rounded-2xl bg-gray-200 flex items-center justify-center">
+                                            <p className="text-gray-400">Hình ảnh mặt bằng đang được cập nhật</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        );
+                    })()}
 
                     {/* Dynamically Loaded Project Articles for this section */}
                     {articles.length > 0 && (
