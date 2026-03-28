@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\Frontend\InvestorController;
 use App\Http\Controllers\Api\Frontend\SettingController as PublicSettingController;
 use App\Http\Controllers\Api\Frontend\ProjectZoneController as PublicZoneController;
 use App\Http\Controllers\Api\Frontend\ZoneArticleController as PublicZoneArticleController;
+use App\Http\Controllers\Api\Frontend\PropertyController as PublicPropertyController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -54,4 +55,5 @@ Route::prefix('v1/public')->as('public.')->group(function () {
     Route::apiResource('project-articles', ProjectArticleController::class)->only(['index', 'show']);
     Route::apiResource('zones', PublicZoneController::class)->only(['index', 'show']);
     Route::apiResource('zone-articles', PublicZoneArticleController::class)->only(['index', 'show']);
+    Route::get('properties', [PublicPropertyController::class, 'index']);
 });

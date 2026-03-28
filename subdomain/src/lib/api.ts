@@ -373,3 +373,38 @@ export async function fetchZoneArticles(zoneId: number, type?: string, perPage =
     return [];
   }
 }
+
+// ======== PROPERTIES ========
+
+export interface PropertyItem {
+  id: number;
+  product_code?: string | null;
+  product_type?: string | null;
+  floor?: string | null;
+  area?: number | null;
+  price?: number | null;
+  main_image?: string | null;
+  main_image_url?: string | null;
+  status: string;
+  // translated
+  name?: string | null;
+  summary?: string | null;
+}
+
+export async function fetchProjectProperties(projectId: number, perPage = 50): Promise<PropertyItem[]> {
+  try {
+    const params = new URLSearchParams({
+      project_id: String(projectId),
+      per_page: String(perPage),
+    });
+    const res = await fetch(`${API_BASE}/public/properties?${params.toString()}`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const json: PaginatedResponse<PropertyItem> = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+

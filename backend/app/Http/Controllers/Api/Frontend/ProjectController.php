@@ -47,6 +47,10 @@ class ProjectController extends Controller
         $project->setAttribute('name', $project->name);
         $project->setAttribute('slogan', $project->slogan);
         $project->setAttribute('short_description', $project->short_description);
+        $project->setAttribute('scale', $project->scale);
+        // Map DB column names to frontend-expected names
+        $project->setAttribute('handoff_time', $project->handover_time);
+        $project->setAttribute('legal', $project->legal_status);
 
         // Append perspective_image_url
         if ($project->perspective_image) {

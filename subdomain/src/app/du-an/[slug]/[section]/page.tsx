@@ -2,7 +2,7 @@
 
 import { use, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { fetchProject, fetchArticlesForProject, fetchProjectZones, Project, ProjectArticle, ProjectZone } from "@/lib/api";
+import { fetchProject, fetchArticlesForProject, fetchProjectZones, fetchProjectProperties, Project, ProjectArticle, ProjectZone, PropertyItem } from "@/lib/api";
 import DynamicArticleRenderer from "@/components/articles/DynamicArticleRenderer";
 
 function getYouTubeEmbedUrl(url: string | null | undefined) {
@@ -24,6 +24,9 @@ export default function ProjectSectionPage({
     const [active360, setActive360] = useState<string | null>(null);
     const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
     const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
+    const [properties, setProperties] = useState<PropertyItem[]>([]);
+    const [productOffset, setProductOffset] = useState<number>(0);
+    const PRODUCTS_PER_PAGE = 3;
 
     const displayImages = useMemo(() => {
         const slideMedia = project?.slide_images || [];
@@ -61,6 +64,10 @@ export default function ProjectSectionPage({
 
                 if (section === "phan-khu") {
                     fetchProjectZones(data.id).then(setZones);
+                }
+
+                if (section === "tong-quan") {
+                    fetchProjectProperties(data.id).then(setProperties);
                 }
 
                 // Auto-select first 360 link when visiting anh-360 tab
@@ -154,7 +161,7 @@ export default function ProjectSectionPage({
                                     </div>
                                     <div>
                                         <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Quy mô</p>
-                                        <p className="text-xl font-bold text-[#62908f]">{project?.scale || translation?.scale || "Đang cập nhật"}</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{(project as any)?.scale || (translation as any)?.scale || "Đang cập nhật"}</p>
                                     </div>
                                 </div>
 
@@ -167,7 +174,7 @@ export default function ProjectSectionPage({
                                     </div>
                                     <div>
                                         <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Bàn giao</p>
-                                        <p className="text-xl font-bold text-[#62908f]">{project?.handoff_time || translation?.handoff_time || project?.handoffTime || translation?.handoffTime || "Đang cập nhật"}</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{(project as any)?.handoff_time || (project as any)?.handover_time || (translation as any)?.handoff_time || (translation as any)?.handover_time || "Đang cập nhật"}</p>
                                     </div>
                                 </div>
 
@@ -180,7 +187,7 @@ export default function ProjectSectionPage({
                                     </div>
                                     <div>
                                         <p className="text-[13px] text-gray-500 font-medium mb-1 uppercase tracking-wide">Pháp lý</p>
-                                        <p className="text-xl font-bold text-[#62908f]">{project?.legal || translation?.legal || "Đang cập nhật"}</p>
+                                        <p className="text-xl font-bold text-[#62908f]">{(project as any)?.legal || (project as any)?.legal_status || (translation as any)?.legal || (translation as any)?.legal_status || "Đang cập nhật"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -228,6 +235,67 @@ export default function ProjectSectionPage({
                             </div>
                         </div>
                     </section>
+
+                    {/* Products Section (Sản Phẩm) */}
+                    {properties.length > 0 && (() => {
+                        const totalPages = Math.ceil(properties.length / PRODUCTS_PER_PAGE);
+                        const visibleProducts = properties.slice(productOffset, productOffset + PRODUCTS_PER_PAGE);
+                        return (
+                            <section className="py-16 bg-white border-t border-gray-100">
+                                <div className="max-w-7xl mx-auto px-4">
+                                    <div className="text-center mb-10">
+                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1">Sản phẩm</h2>
+                                        <p className="text-gray-400 text-sm">Đa dạng lựa chọn cho mọi nhu cầu</p>
+                                        <div className="w-10 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
+                                    </div>
+                                    <div className="relative">
+                                        {productOffset > 0 && (
+                                            <button onClick={() => setProductOffset(o => Math.max(0, o - PRODUCTS_PER_PAGE))} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                            </button>
+                                        )}
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {visibleProducts.map(prop => (
+                                                <div key={prop.id} className="bg-white rounded-2xl overflow-hidden group hover:shadow-xl transition-all duration-300 border border-gray-100">
+                                                    <div className="relative h-56 bg-gray-50 overflow-hidden flex items-center justify-center">
+                                                        {(prop.main_image_url || prop.main_image) ? (
+                                                            <img src={prop.main_image_url || prop.main_image || ''} alt={prop.name || prop.product_type || 'Sản phẩm'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#ccc" className="w-16 h-16"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-5">
+                                                        <h3 className="text-[#62908f] font-semibold text-base mb-1.5">{prop.name || prop.product_type || `Sản phẩm #${prop.id}`}</h3>
+                                                        {prop.area && <p className="text-gray-500 text-sm">Diện tích: <span className="font-medium text-gray-700">~{prop.area} m²</span></p>}
+                                                        {prop.floor && <p className="text-gray-500 text-sm">Tầng: <span className="font-medium text-gray-700">{prop.floor}</span></p>}
+                                                        {prop.price && <p className="text-gray-500 text-sm mt-1">Giá: <span className="font-medium text-[#c9b26e]">{new Intl.NumberFormat('vi-VN').format(prop.price)} VNĐ</span></p>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {visibleProducts.length < PRODUCTS_PER_PAGE && Array.from({ length: PRODUCTS_PER_PAGE - visibleProducts.length }).map((_, i) => (
+                                                <div key={`ph-${i}`} className="hidden md:block" />
+                                            ))}
+                                        </div>
+                                        {productOffset + PRODUCTS_PER_PAGE < properties.length && (
+                                            <button onClick={() => setProductOffset(o => o + PRODUCTS_PER_PAGE)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                            </button>
+                                        )}
+                                    </div>
+                                    {totalPages > 1 && (
+                                        <div className="flex justify-center gap-2 mt-8">
+                                            {Array.from({ length: totalPages }).map((_, idx) => {
+                                                const isActive = Math.floor(productOffset / PRODUCTS_PER_PAGE) === idx;
+                                                return <button key={idx} onClick={() => setProductOffset(idx * PRODUCTS_PER_PAGE)} className={`rounded-full transition-all ${isActive ? 'w-6 h-2.5 bg-[#e2cb83]' : 'w-2.5 h-2.5 bg-gray-200 hover:bg-gray-300'}`} />;
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        );
+                    })()}
 
                     {/* Floor Plan Section (Mặt Bằng) */}
                     {(() => {
