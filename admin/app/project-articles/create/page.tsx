@@ -35,6 +35,17 @@ export default function CreateProjectArticlePage() {
       }
     };
     loadProjects();
+
+    const params = new URLSearchParams(window.location.search);
+    const pId = params.get("project_id");
+    const pType = params.get("type");
+    if (pId || pType) {
+      setFormData(prev => ({
+        ...prev,
+        project_id: pId || prev.project_id,
+        type: pType || prev.type,
+      }));
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

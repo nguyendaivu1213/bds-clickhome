@@ -31,6 +31,9 @@ export default function UpdateProjectPage() {
           slogan: vi?.slogan || "",
           shortDesc: vi?.short_description || "",
           fullDesc: vi?.overview_description || "",
+          htmlContent: vi?.html_content || "",
+          productShortDesc: vi?.product_short_desc || "",
+          productLongDesc: vi?.product_long_desc || "",
           url: vi?.url || "",
           seoTitle: vi?.page_title || "",
           seoDesc: vi?.meta_description || "",
@@ -62,6 +65,13 @@ export default function UpdateProjectPage() {
           masterPlan: vi?.master_plan || [],
           unitLayouts: vi?.other_layouts || [],
           progressHistory: vi?.construction_progress || [],
+          overviewSpecs: (vi?.overview_specs && vi.overview_specs.length > 0) ? vi.overview_specs : [
+             { icon: "crop_free", name: "Quy mô dự án", value: vi?.scale || "", isVisible: true },
+             { icon: "location_on", name: "Địa chỉ thực tế", value: vi?.location || "", isVisible: true },
+             { icon: "architecture", name: "Đơn vị thiết kế", value: vi?.design || "", isVisible: true },
+             { icon: "gavel", name: "Tình trạng pháp lý", value: vi?.legal_status || "", isVisible: true },
+             { icon: "calendar_month", name: "Thời gian bàn giao", value: vi?.handover_time || "", isVisible: true },
+          ],
         };
 
         setProject(transformedData);

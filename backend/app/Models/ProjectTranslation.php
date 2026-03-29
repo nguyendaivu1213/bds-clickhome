@@ -11,13 +11,15 @@ class ProjectTranslation extends Model
         'name', 'slogan', 'short_description', 'overview_description', 
         'url', 'page_title', 'meta_description', 'meta_keywords', 'header_tag', 
         'location', 'location_strengths', 'real_photos', 'connections', 'scale', 'product_types', 'design', 'apartment_types', 
-        'area', 'handover_time', 'legal_status', 'html_content', 'location_content', 
+        'area', 'handover_time', 'legal_status', 'html_content', 'location_content', 'product_short_desc', 'product_long_desc',
+        'overview_specs',
         'slide_images', 'map_360_links', 'master_plan', 'zone_planning', 'building_locations', 
         'studio_layouts', '1br_layouts', '2br_layouts', '3br_layouts', 'duplex_layouts', 'other_layouts', 
         'amenities', 'handover_standards', 'images', 'videos', 'construction_progress', 'tags'
     ];
 
     protected $casts = [
+        'overview_specs' => 'json',
         'slide_images' => 'json',
         'real_photos' => 'json',
         'connections' => 'json',

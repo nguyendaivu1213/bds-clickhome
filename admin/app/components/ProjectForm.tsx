@@ -27,15 +27,15 @@ interface ProjectFormProps {
 
 const TABS = [
   { id: "info", label: "Tổng quan", icon: "info" },
-  { id: "seo", label: "SEO", icon: "search" },
   { id: "location", label: "Vị trí", icon: "location_on" },
-  { id: "360", label: "360 độ", icon: "360" },
   { id: "layout", label: "Mặt bằng & Layout", icon: "layers" },
   { id: "amenities", label: "Tiện ích", icon: "pool" },
+  { id: "360", label: "360 độ", icon: "360" },
   { id: "media", label: "Hình ảnh & Video", icon: "imagesmode" },
   { id: "pricing", label: "Giá & Chính sách", icon: "sell" },
   { id: "progress", label: "Tiến độ", icon: "event_available" },
   { id: "contact", label: "Liên hệ", icon: "contact_support" },
+  { id: "seo", label: "Setting", icon: "settings" },
 ];
 
 const DEFAULT_FORM_DATA = {
@@ -43,12 +43,22 @@ const DEFAULT_FORM_DATA = {
   mainCategory: "",
   subCategory: "",
   tags: "",
+  overviewSpecs: [
+     { icon: "crop_free", name: "Quy mô dự án", value: "", isVisible: true },
+     { icon: "location_on", name: "Địa chỉ thực tế", value: "", isVisible: true },
+     { icon: "architecture", name: "Đơn vị thiết kế", value: "", isVisible: true },
+     { icon: "gavel", name: "Tình trạng pháp lý", value: "", isVisible: true },
+     { icon: "calendar_month", name: "Thời gian bàn giao", value: "", isVisible: true },
+  ],
   perspectiveImage: "",
   footerImage: "",
   bannerType: "full_banner",
   slogan: "",
   shortDesc: "",
   fullDesc: "",
+  htmlContent: "",
+  productShortDesc: "",
+  productLongDesc: "",
   publishDate: "",
   url: "",
   urlPrefix: "https://clickhome.vn/du-an/",
@@ -110,9 +120,31 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const [currentMediaTarget, setCurrentMediaTarget] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [investors, setInvestors] = useState<Investor[]>([]);
+  const [overviewIcons, setOverviewIcons] = useState<{label: string, value: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isAutoSlug, setIsAutoSlug] = useState(mode === "create");
+
+  const [projectArticles, setProjectArticles] = useState<any[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+
+  useEffect(() => {
+    if (mode === "update" && initialData?.id) {
+      setLoadingArticles(true);
+      fetch(`${API_BASE}/project-articles?project_id=${initialData.id}&per_page=100`, {
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(r => r.json())
+      .then(data => {
+        const items = (data.data ?? data) as any[];
+        const overviewItems = Array.isArray(items) ? items.filter(a => a.type === "overview") : [];
+        const sortedItems = overviewItems.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        setProjectArticles(sortedItems);
+      })
+      .catch(err => console.error("Lỗi khi tải bài viết dự án:", err))
+      .finally(() => setLoadingArticles(false));
+    }
+  }, [mode, initialData?.id]);
 
   useEffect(() => {
     async function fetchInvestors() {
@@ -136,6 +168,33 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
       }
     }
     fetchInvestors();
+  }, []);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/settings`, { headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+          const data = await res.json();
+          const dynamicSelections = data.dynamic_selections || [];
+          const list = dynamicSelections.find((l: any) => l.key === 'overview_icons');
+          if (list && list.options && list.options.length > 0) {
+            setOverviewIcons(list.options);
+          } else {
+            setOverviewIcons([
+               { value: 'crop_free', label: 'Quy mô (crop_free)' },
+               { value: 'location_on', label: 'Vị trí (location_on)' },
+               { value: 'architecture', label: 'Thiết kế (architecture)' },
+               { value: 'gavel', label: 'Pháp lý (gavel)' },
+               { value: 'calendar_month', label: 'Thời gian (calendar)' },
+               { value: 'home', label: 'Nhà (home)' },
+               { value: 'star', label: 'Nổi bật (star)' }
+            ]);
+          }
+        }
+      } catch (err) {}
+    }
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -166,8 +225,8 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
   const [formData, setFormData] = useState(() => {
     if (!initialData) return DEFAULT_FORM_DATA;
-    return {
-      ...DEFAULT_FORM_DATA,
+    return { 
+      ...DEFAULT_FORM_DATA, 
       ...initialData,
       bannerType: initialData.banner_type || initialData.bannerType || "full_banner"
     };
@@ -179,7 +238,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const handleInputChange = (field: string, value: any) => {
     setFormData((prev: any) => {
       const newData = { ...prev, [field]: value };
-
+      
       // Auto-generate URL from name if enabled
       if (field === "name" && isAutoSlug) {
         newData.url = value
@@ -235,11 +294,24 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
       const url = mode === "create" ? `${API_BASE}/projects` : `${API_BASE}/projects/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
-      const bodyData = {
+      let authorId = 1;
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+      };
+      
+      try {
+        const cookieId = getCookie('admin_user_id');
+        if (cookieId) authorId = parseInt(cookieId);
+      } catch (e) {}
+
+      const bodyData = { 
         ...formData,
         mainCategory: formData.mainCategory ? parseInt(formData.mainCategory) : null,
         investor: formData.investor ? parseInt(formData.investor) : null,
         order: formData.order ? parseInt(String(formData.order)) : 0,
+        author_id: authorId,
       };
 
       const res = await fetch(url, {
@@ -320,10 +392,11 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 pt-4 text-sm transition-all relative ${activeTab === tab.id
+              className={`pb-4 pt-4 text-sm transition-all relative ${
+                activeTab === tab.id
                   ? "text-primary font-bold border-b-2 border-primary"
                   : "text-slate-500 font-medium hover:text-primary"
-                }`}
+              }`}
             >
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
@@ -346,43 +419,43 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-bold text-slate-700">Tên dự án <span className="text-red-500">*</span></label>
-                      <button
-                        type="button"
-                        onClick={() => setIsAutoSlug(!isAutoSlug)}
-                        className={`text-[10px] font-black px-2 py-0.5 rounded transition-colors ${isAutoSlug ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}
-                      >
-                        AUTO URL {isAutoSlug ? 'ON' : 'OFF'}
-                      </button>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-bold text-slate-700">Tên dự án <span className="text-red-500">*</span></label>
+                        <button 
+                          type="button" 
+                          onClick={() => setIsAutoSlug(!isAutoSlug)}
+                          className={`text-[10px] font-black px-2 py-0.5 rounded transition-colors ${isAutoSlug ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}
+                        >
+                          AUTO URL {isAutoSlug ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
+                      <input 
+                        className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                        placeholder="VD: Riverside Complex"
+                        value={formData.name || ""}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                      />
+                      {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.name}</p>}
                     </div>
-                    <input
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
-                      placeholder="VD: Riverside Complex"
-                      value={formData.name || ""}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                    />
-                    {errors.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{errors.name}</p>}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
-                    <select
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
-                      value={formData.investor}
-                      onChange={(e) => handleInputChange("investor", e.target.value)}
-                    >
-                      <option value="">Chọn chủ đầu tư</option>
-                      {investors.map(inv => (
-                        <option key={inv.id} value={inv.id}>{inv.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                    <div className="flex flex-col gap-2">
+                       <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
+                       <select 
+                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
+                         value={formData.investor || ""}
+                         onChange={(e) => handleInputChange("investor", e.target.value)}
+                       >
+                         <option value="">Chọn chủ đầu tư</option>
+                         {investors.map(inv => (
+                           <option key={inv.id} value={inv.id}>{inv.name}</option>
+                         ))}
+                       </select>
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-bold text-slate-700">Slogan dự án</label>
-                  <input
+                  <input 
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium italic"
                     placeholder="VD: Nơi khơi nguồn hạnh phúc"
                     value={formData.slogan || ""}
@@ -390,127 +463,211 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-slate-700">Mô tả ngắn (Description)</label>
-                  <textarea
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
-                    placeholder="Nhập mô tả ngắn gọn về dự án..."
-                    value={formData.shortDesc || ""}
-                    onChange={(e) => handleInputChange("shortDesc", e.target.value)}
-                  />
+                <div className="flex flex-col gap-2 mt-6">
+                  <label className="text-sm font-bold text-slate-700">Youtube Link</label>
+                  <input placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.youtube_link || ""} onChange={(e) => handleInputChange("youtube_link", e.target.value)} />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-slate-700">Thẻ từ khóa (Tags)</label>
-                  <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 min-h-[50px]">
-                    {(formData.tags || "").split(",").filter(Boolean).map((tag: string, i: number) => (
-                      <span key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 shadow-sm transition-all group hover:border-primary">
-                        {tag.trim()}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentTags = formData.tags.split(",").filter(Boolean);
-                            const newTags = currentTags.filter((_: string, idx: number) => idx !== i);
-                            handleInputChange("tags", newTags.join(","));
-                          }}
-                          className="material-symbols-outlined text-sm text-slate-300 hover:text-red-500"
-                        >
-                          close
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      className="flex-1 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 placeholder:text-slate-300"
-                      placeholder="Thêm tag (VD: chung-cu, quan-2)..."
-                      onKeyDown={(e: any) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                          e.preventDefault();
-                          const currentTags = formData.tags ? formData.tags.split(",") : [];
-                          const newTags = [...currentTags, e.target.value.trim()];
-                          handleInputChange("tags", newTags.join(","));
-                          e.target.value = "";
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+
               </section>
 
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung chi tiết (Rich Text)</h3>
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">summarize</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung ngắn</h3>
                 </div>
-                <RichTextEditor
-                  content={formData.fullDesc}
-                  onChange={(val) => handleInputChange("fullDesc", val)}
+                <RichTextEditor 
+                   content={formData.shortDesc} 
+                   onChange={(val) => handleInputChange("shortDesc", val)} 
                 />
               </section>
 
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan chi tiết</h3>
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung tóm tắt</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.fullDesc} 
+                   onChange={(val) => handleInputChange("fullDesc", val)} 
+                />
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">description</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung chi tiết</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.htmlContent} 
+                   onChange={(val) => handleInputChange("htmlContent", val)} 
+                />
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
+                    <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan chi tiết</h3>
+                  </div>
+                  <button type="button" onClick={() => handleInputChange("overviewSpecs", [...(formData.overviewSpecs || []), { icon: "star", name: "Thông số mới", value: "", isVisible: true }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm thông số</button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
-                      <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Địa chỉ thực tế</label>
-                      <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.actualAddress} onChange={(e) => handleInputChange("actualAddress", e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Đơn vị thiết kế</label>
-                      <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.designUnit} onChange={(e) => handleInputChange("designUnit", e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Tình trạng pháp lý</label>
-                      <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.legal} onChange={(e) => handleInputChange("legal", e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Youtube Link</label>
-                      <input placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.youtube_link} onChange={(e) => handleInputChange("youtube_link", e.target.value)} />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-bold text-slate-700">Thời gian bàn giao</label>
-                      <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.handoffTime} onChange={(e) => handleInputChange("handoffTime", e.target.value)} />
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                   {formData.overviewSpecs?.map((spec: any, idx: number) => (
+                      <div key={idx} className="flex items-start gap-4 bg-slate-50 p-4 border border-slate-100 rounded-2xl group">
+                         <div className="flex items-center gap-2 cursor-pointer mt-2.5" onClick={() => {
+                            const newSpecs = [...formData.overviewSpecs];
+                            newSpecs[idx].isVisible = !newSpecs[idx].isVisible;
+                            handleInputChange("overviewSpecs", newSpecs);
+                         }}>
+                            <div className={`size-5 rounded flex items-center justify-center border transition-colors ${spec.isVisible ? 'bg-primary border-primary' : 'bg-white border-slate-300'}`}>
+                               <span className="material-symbols-outlined text-[14px] text-white opacity-100">check</span>
+                            </div>
+                         </div>
+                         <div className="flex-1 grid grid-cols-12 gap-3 items-center">
+                            <div className="col-span-12 md:col-span-3">
+                               <div className="flex bg-white border border-slate-200 rounded-lg focus-within:border-primary overflow-hidden items-center px-2">
+                                  {spec.icon && spec.icon.startsWith('<svg') ? (
+                                    <div className="size-5 flex items-center justify-center text-slate-500" dangerouslySetInnerHTML={{ __html: spec.icon }} />
+                                  ) : spec.icon ? (
+                                    <span className="material-symbols-outlined text-slate-500 text-base">{spec.icon}</span>
+                                  ) : null}
+                                  <select className="flex-1 min-w-[100px] bg-transparent px-2 py-2 text-sm font-medium outline-none cursor-pointer text-slate-700 w-[150px] truncate" value={spec.icon || ""} onChange={(e) => {
+                                     const newSpecs = [...formData.overviewSpecs];
+                                     newSpecs[idx].icon = e.target.value;
+                                     handleInputChange("overviewSpecs", newSpecs);
+                                  }}>
+                                     <option value="">Chọn icon...</option>
+                                     {overviewIcons.map((ico, iIdx) => (
+                                        <option key={iIdx} value={ico.value}>{ico.label}</option>
+                                     ))}
+                                  </select>
+                               </div>
+                            </div>
+                            <div className="col-span-12 md:col-span-4">
+                               <input className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-bold outline-none focus:border-primary" placeholder="Tên (VD: Quy mô dự án)..." value={spec.name || ""} onChange={(e) => {
+                                  const newSpecs = [...formData.overviewSpecs];
+                                  newSpecs[idx].name = e.target.value;
+                                  handleInputChange("overviewSpecs", newSpecs);
+                               }} />
+                            </div>
+                            <div className="col-span-12 md:col-span-4">
+                               <input className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium outline-none focus:border-primary" placeholder="Giá trị (VD: 10 ha)..." value={spec.value || ""} onChange={(e) => {
+                                  const newSpecs = [...formData.overviewSpecs];
+                                  newSpecs[idx].value = e.target.value;
+                                  handleInputChange("overviewSpecs", newSpecs);
+                               }} />
+                            </div>
+                            <div className="col-span-12 md:col-span-1 flex justify-end">
+                               <button type="button" onClick={() => handleInputChange("overviewSpecs", formData.overviewSpecs.filter((_: any, i: number) => i !== idx))} className="text-slate-400 bg-white border border-slate-200 size-8 rounded-lg flex justify-center items-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all">
+                                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                               </button>
+                            </div>
+                         </div>
+                      </div>
+                   ))}
                 </div>
               </section>
 
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">view_carousel</span>
-                    <h3 className="text-xl font-bold text-slate-900 font-display">Slide ảnh nổi bật</h3>
+                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">view_carousel</span>
+                     <h3 className="text-xl font-bold text-slate-900 font-display">Slide ảnh nổi bật</h3>
                   </div>
                   <button type="button" onClick={() => handleInputChange("slides", [...formData.slides, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Slide</button>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {formData.slides.map((slide: any, idx: number) => (
                     <div key={idx} className="group relative bg-slate-50 rounded-2xl border border-slate-100 p-3">
-                      <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
-                        {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
-                      </div>
-                      <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title || ""} onChange={(e) => {
-                        const newSlides = [...formData.slides];
-                        newSlides[idx].title = e.target.value;
-                        handleInputChange("slides", newSlides);
-                      }} />
-                      <button type="button" onClick={() => handleInputChange("slides", formData.slides.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg">
-                        <span className="material-symbols-outlined text-[14px]">close</span>
-                      </button>
+                       <div onClick={() => openMediaPicker(`slides.${idx}.image`)} className="aspect-square bg-slate-100 rounded-xl overflow-hidden mb-3 cursor-pointer flex items-center justify-center">
+                          {slide.image ? <img src={slide.image} className="w-full h-full object-cover" alt="Slide" /> : <span className="material-symbols-outlined text-slate-300">add_a_photo</span>}
+                       </div>
+                       <input className="w-full border-none p-0 text-[10px] font-bold text-center bg-transparent" placeholder="Tiêu đề..." value={slide.title || ""} onChange={(e) => {
+                         const newSlides = [...formData.slides];
+                         newSlides[idx].title = e.target.value;
+                         handleInputChange("slides", newSlides);
+                       }} />
+                       <button type="button" onClick={() => handleInputChange("slides", formData.slides.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 shadow-lg">
+                         <span className="material-symbols-outlined text-[14px]">close</span>
+                       </button>
                     </div>
                   ))}
                 </div>
               </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">subject</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nói về sản phẩm (ngắn)</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.productShortDesc} 
+                   onChange={(val) => handleInputChange("productShortDesc", val)} 
+                />
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nói về sản phẩm (dài)</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.productLongDesc} 
+                   onChange={(val) => handleInputChange("productLongDesc", val)} 
+                />
+              </section>
+
+              {mode === "update" && initialData?.id && (
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">library_books</span>
+                     <h3 className="text-xl font-bold text-slate-900 font-display">Các bài viết tổng quan</h3>
+                  </div>
+                  <Link href={`/project-articles/create?project_id=${initialData.id}&type=overview`} className="px-5 py-2.5 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all text-xs tracking-widest uppercase flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Thêm bài tổng quan
+                  </Link>
+                </div>
+                
+                {loadingArticles ? (
+                  <div className="text-center py-6 text-slate-400 font-medium animate-pulse">Đang tải dữ liệu...</div>
+                ) : projectArticles.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50">
+                     <span className="material-symbols-outlined text-5xl text-slate-300 mb-2">article</span>
+                     <p className="text-slate-500 font-medium">Chưa có bài viết tổng quan nào cho dự án này.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {projectArticles.map((article: any) => {
+                      const trans = article.translations?.find((t: any) => t.locale === 'vi') ?? article.translations?.[0];
+                      const title = trans?.title ?? article.title ?? "Không có tiêu đề";
+                      
+                      return (
+                      <Link 
+                        key={article.id}
+                        href={`/project-articles/update/${article.id}`} 
+                        className="flex items-center gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-primary hover:bg-white transition-all group"
+                      >
+                        <div className="size-12 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black">
+                           {(article.display_order ?? 0)}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                           <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors">{title}</h4>
+                           <div className="flex items-center gap-3 text-xs font-medium text-slate-400">
+                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(article.created_at).toLocaleDateString("vi-VN")}</span>
+                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{article.is_published ? 'visibility' : 'visibility_off'}</span> {article.is_published ? 'Công khai' : 'Bản nháp'}</span>
+                           </div>
+                        </div>
+                        <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                      </Link>
+                    )})}
+                  </div>
+                )}
+              </section>
+              )}
             </div>
           )}
 
@@ -518,17 +675,51 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">search</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Cấu hình SEO</h3>
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">settings</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Cấu hình Setting</h3>
                 </div>
 
                 <div className="space-y-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-bold text-slate-700">Thẻ từ khóa (Tags)</label>
+                    <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 min-h-[50px]">
+                      {(formData.tags || "").split(",").filter(Boolean).map((tag: string, i: number) => (
+                        <span key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 shadow-sm transition-all group hover:border-primary">
+                          {tag.trim()}
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const currentTags = formData.tags.split(",").filter(Boolean);
+                              const newTags = currentTags.filter((_: string, idx: number) => idx !== i);
+                              handleInputChange("tags", newTags.join(","));
+                            }}
+                            className="material-symbols-outlined text-sm text-slate-300 hover:text-red-500"
+                          >
+                            close
+                          </button>
+                        </span>
+                      ))}
+                      <input 
+                        className="flex-1 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 placeholder:text-slate-300"
+                        placeholder="Thêm tag (VD: chung-cu, quan-2)..."
+                        onKeyDown={(e: any) => {
+                          if (e.key === "Enter" && e.target.value.trim()) {
+                             e.preventDefault();
+                             const currentTags = formData.tags ? formData.tags.split(",") : [];
+                             const newTags = [...currentTags, e.target.value.trim()];
+                             handleInputChange("tags", newTags.join(","));
+                             e.target.value = "";
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-bold text-slate-700">SEO Title</label>
                       <span className={`text-[10px] font-black px-2 py-0.5 rounded ${formData.seoTitle.length > 60 ? 'bg-red-50 text-red-500' : 'bg-primary/10 text-primary'}`}>{formData.seoTitle.length} / 60</span>
                     </div>
-                    <input
+                    <input 
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
                       placeholder="VD: Riverside Complex | Căn hộ cao cấp Quận 2"
                       value={formData.seoTitle || ""}
@@ -541,7 +732,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                       <label className="text-sm font-bold text-slate-700">SEO Meta Description</label>
                       <span className={`text-[10px] font-black px-2 py-0.5 rounded ${formData.seoDesc.length > 160 ? 'bg-red-50 text-red-500' : 'bg-primary/10 text-primary'}`}>{formData.seoDesc.length} / 160</span>
                     </div>
-                    <textarea
+                    <textarea 
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
                       placeholder="Mô tả tóm tắt nội dung trang..."
                       value={formData.seoDesc || ""}
@@ -551,21 +742,21 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                 </div>
               </section>
 
-              <section className="p-8 rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden">
+              <section className="bg-slate-900 p-8 rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden">
                 <div className="relative">
-                  <div className="flex justify-between items-center mb-6">
-                    <h4 className="text-white text-sm font-black flex items-center gap-3 uppercase tracking-widest opacity-60">Google Search Preview</h4>
-                    <span className="material-symbols-outlined text-primary text-2xl">google</span>
-                  </div>
-                  <div className="space-y-2 bg-white/5 backdrop-blur-sm p-6 rounded-3xl border border-white/5 shadow-inner text-white">
-                    <div className="text-[#1a0dab] text-xl font-bold hover:underline cursor-pointer">
-                      {formData.seoTitle || "Riverside Complex | Căn hộ cao cấp Quận 2"}
-                    </div>
-                    <div className="text-[#006621] text-sm">{formData.urlPrefix}{formData.url || "riverside-complex"}</div>
-                    <div className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">
-                      {formData.seoDesc || "Riverside Complex là dự án căn hộ cao cấp bậc nhất tại Quận 2..."}
-                    </div>
-                  </div>
+                   <div className="flex justify-between items-center mb-6">
+                      <h4 className="text-white text-sm font-black flex items-center gap-3 uppercase tracking-widest opacity-60">Google Search Preview</h4>
+                      <span className="material-symbols-outlined text-primary text-2xl">google</span>
+                   </div>
+                   <div className="space-y-2 bg-white/5 backdrop-blur-sm p-6 rounded-3xl border border-white/5 shadow-inner text-white">
+                      <div className="text-[#1a0dab] text-xl font-bold hover:underline cursor-pointer">
+                        {formData.seoTitle || "Riverside Complex | Căn hộ cao cấp Quận 2"}
+                      </div>
+                      <div className="text-[#006621] text-sm">{formData.urlPrefix}{formData.url || "riverside-complex"}</div>
+                      <div className="text-[#4d5156] text-sm line-clamp-2 leading-relaxed">
+                        {formData.seoDesc || "Riverside Complex là dự án căn hộ cao cấp bậc nhất tại Quận 2..."}
+                      </div>
+                   </div>
                 </div>
               </section>
             </div>
@@ -575,454 +766,434 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
           {activeTab === "location" && (
             <div key="loc" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-12 flex flex-col gap-6">
-                  <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-                      <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">location_on</span> Bản đồ Vị trí</h3>
-                    </div>
-                    <div className="p-6 border-b border-slate-100 space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Link Google Maps</label>
-                      <div className="flex gap-2">
-                        <input
-                          className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                          placeholder="https://www.google.com/maps/@lat,lng,15z ..."
-                          value={formData.googleMapLink || ""}
-                          onChange={(e) => {
-                            const url = e.target.value;
-                            handleInputChange("googleMapLink", url);
-
-                            let lat, lng;
-                            const m1 = url.match(/@(-?[\d.]+),(-?[\d.]+)/);
-                            if (m1) { lat = m1[1]; lng = m1[2]; }
-
-                            if (!lat || !lng) {
-                              const m2 = url.match(/!3d(-?[\d.]+)!4d(-?[\d.]+)/);
-                              if (m2) { lat = m2[1]; lng = m2[2]; }
-                            }
-
-                            if (!lat || !lng) {
-                              const m3 = url.match(/[?&]q=(-?[\d.]+),(-?[\d.]+)/);
-                              if (m3) { lat = m3[1]; lng = m3[2]; }
-                            }
-
-                            if (lat && lng) {
-                              handleInputChange("latitude", lat);
-                              handleInputChange("longitude", lng);
-                            }
-                          }}
-                        />
-                        {formData.googleMapLink && (
-                          <a href={formData.googleMapLink} target="_blank" rel="noopener noreferrer"
-                            className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Mở Google Maps">
-                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
-                          </a>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400">Dán link từ Google Maps. Hệ thống sẽ tự điền tọa độ và hiển thị bản đồ.</p>
-                    </div>
-                    <div className="aspect-video w-full bg-slate-100 relative">
-                      {formData.latitude && formData.longitude ? (
-                        <iframe
-                          src={`https://maps.google.com/maps?q=${formData.latitude},${formData.longitude}&z=15&output=embed`}
-                          className="w-full h-full border-none"
-                          allowFullScreen
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center gap-2">
-                          <span className="material-symbols-outlined text-6xl text-slate-200">map</span>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Nhập link Google Maps để xem preview</p>
+               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="lg:col-span-12 flex flex-col gap-6">
+                     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+                           <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">location_on</span> Bản đồ Vị trí</h3>
                         </div>
-                      )}
-                    </div>
-                    {/* Hidden Latitude and Longitude */}
-                    <div className="hidden">
-                      <input value={formData.latitude || ""} readOnly />
-                      <input value={formData.longitude || ""} readOnly />
-                    </div>
+                        <div className="p-6 border-b border-slate-100 space-y-2">
+                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Link Google Maps</label>
+                           <div className="flex gap-2">
+                              <input
+                                 className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                 placeholder="https://www.google.com/maps/@lat,lng,15z ..."
+                                 value={formData.googleMapLink || ""}
+                                 onChange={(e) => {
+                                    const url = e.target.value;
+                                    handleInputChange("googleMapLink", url);
+                                    
+                                    let lat, lng;
+                                    const m1 = url.match(/@(-?[\d.]+),(-?[\d.]+)/);
+                                    if (m1) { lat = m1[1]; lng = m1[2]; }
+                                    
+                                    if (!lat || !lng) {
+                                      const m2 = url.match(/!3d(-?[\d.]+)!4d(-?[\d.]+)/);
+                                      if (m2) { lat = m2[1]; lng = m2[2]; }
+                                    }
+                                    
+                                    if (!lat || !lng) {
+                                      const m3 = url.match(/[?&]q=(-?[\d.]+),(-?[\d.]+)/);
+                                      if (m3) { lat = m3[1]; lng = m3[2]; }
+                                    }
+
+                                    if (lat && lng) { 
+                                      handleInputChange("latitude", lat); 
+                                      handleInputChange("longitude", lng); 
+                                    }
+                                 }}
+                              />
+                              {formData.googleMapLink && (
+                                 <a href={formData.googleMapLink} target="_blank" rel="noopener noreferrer"
+                                    className="p-2.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Mở Google Maps">
+                                    <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                                 </a>
+                              )}
+                           </div>
+                           <p className="text-[10px] text-slate-400">Dán link từ Google Maps. Hệ thống sẽ tự điền tọa độ và hiển thị bản đồ.</p>
+                        </div>
+                        <div className="aspect-video w-full bg-slate-100 relative">
+                           {formData.latitude && formData.longitude ? (
+                              <iframe
+                                 src={`https://maps.google.com/maps?q=${formData.latitude},${formData.longitude}&z=15&output=embed`}
+                                 className="w-full h-full border-none"
+                                 allowFullScreen
+                                 loading="lazy"
+                              />
+                           ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                                 <span className="material-symbols-outlined text-6xl text-slate-200">map</span>
+                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Nhập link Google Maps để xem preview</p>
+                              </div>
+                           )}
+                        </div>
+                        {/* Hidden Latitude and Longitude */}
+                        <div className="hidden">
+                           <input value={formData.latitude || ""} readOnly />
+                           <input value={formData.longitude || ""} readOnly />
+                        </div>
+                     </div>
                   </div>
-                </div>
-                <div className="lg:col-span-12 space-y-8">
-                  <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                    <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
-                    <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium min-h-[120px]" placeholder="Mô tả thế mạnh vị trí..." value={formData.locationStrengths || ""} onChange={(e) => handleInputChange("locationStrengths", e.target.value)} />
+                  <div className="lg:col-span-12 space-y-8">
+                     <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                        <h3 className="font-bold text-lg flex items-center gap-2 mb-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
+                        <RichTextEditor 
+                           content={formData.locationStrengths} 
+                           onChange={(val) => handleInputChange("locationStrengths", val)} 
+                        />
+                     </div>
+                     <div className="grid grid-cols-1 gap-8">
+                        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                           <div className="flex justify-between items-center">
+                              <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">map</span> Ảnh Map</h3>
+                              <button type="button" onClick={() => handleInputChange("realPhotos", [...formData.realPhotos, ""])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm</button>
+                           </div>
+                           <div className="grid grid-cols-2 gap-3">
+                              {formData.realPhotos.map((photo: string, idx: number) => (
+                                 <div key={idx} className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 group overflow-hidden cursor-pointer" onClick={() => openMediaPicker(`realPhotos.${idx}`)}>
+                                    {photo ? <img src={photo} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-200">add</span>}
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleInputChange("realPhotos", formData.realPhotos.filter((_: any, i: number) => i !== idx)); }} className="absolute top-2 right-2 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="material-symbols-outlined text-[12px]">close</span></button>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+
+                     </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-                      <div className="flex justify-between items-center">
-                        <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">image</span> Ảnh thực tế</h3>
-                        <button type="button" onClick={() => handleInputChange("realPhotos", [...formData.realPhotos, ""])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm</button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        {formData.realPhotos.map((photo: string, idx: number) => (
-                          <div key={idx} className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 group overflow-hidden cursor-pointer" onClick={() => openMediaPicker(`realPhotos.${idx}`)}>
-                            {photo ? <img src={photo} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-200">add</span>}
-                            <button type="button" onClick={(e) => { e.stopPropagation(); handleInputChange("realPhotos", formData.realPhotos.filter((_: any, i: number) => i !== idx)); }} className="absolute top-2 right-2 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 space-y-6">
-                      <h3 className="font-bold text-primary flex items-center gap-2"><span className="material-symbols-outlined">commute</span> Kết nối vùng</h3>
-                      <div className="space-y-4">
-                        {formData.connections.map((conn: any, idx: number) => (
-                          <div key={idx} className="bg-white p-4 rounded-2xl border border-primary/10 shadow-sm flex items-center gap-4 group">
-                            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined">{conn.icon || "location_on"}</span></div>
-                            <div className="flex-1">
-                              <input className="w-full border-none p-0 text-xs font-black text-slate-700 bg-transparent focus:ring-0" value={conn.title || ""} onChange={(e) => {
-                                const newConn = [...formData.connections];
-                                newConn[idx].title = e.target.value;
-                                handleInputChange("connections", newConn);
-                              }} />
-                              <input className="w-full border-none p-0 text-[10px] font-bold text-slate-400 bg-transparent focus:ring-0" value={conn.duration || ""} onChange={(e) => {
-                                const newConn = [...formData.connections];
-                                newConn[idx].duration = e.target.value;
-                                handleInputChange("connections", newConn);
-                              }} />
-                            </div>
-                            <button type="button" onClick={() => handleInputChange("connections", formData.connections.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
-                          </div>
-                        ))}
-                        <button type="button" onClick={() => handleInputChange("connections", [...formData.connections, { icon: "commute", title: "Điểm đến mới", duration: "10 phút" }])} className="w-full py-3 border-2 border-dashed border-primary/20 rounded-2xl text-primary text-[10px] font-black uppercase tracking-widest">+ Thêm kết nối</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               </div>
             </div>
           )}
           {activeTab === "amenities" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-slate-900">Tiện ích dự án ({formData.amenities.length})</h3>
-                <button type="button" onClick={() => handleInputChange("amenities", [...formData.amenities, { image: "", title: "", desc: "", isHighlight: false }])} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest">+ Thêm Tiện ích</button>
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                {formData.amenities.map((item: any, idx: number) => (
-                  <div key={idx} className="flex items-center gap-6 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group relative">
-                    <div className="text-primary/10 font-black text-3xl italic scale-y-150 w-8">{String(idx + 1).padStart(2, "0")}</div>
-                    <div className="relative size-24 shrink-0 rounded-2xl overflow-hidden shadow-inner border border-slate-50 cursor-pointer" onClick={() => openMediaPicker(`amenities.${idx}.image`)}>
-                      {item.image ? <img src={item.image} className="w-full h-full object-cover" alt="Amenity" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add_photo_alternate</span>}
+               <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-slate-900">Tiện ích dự án ({formData.amenities.length})</h3>
+                  <button type="button" onClick={() => handleInputChange("amenities", [...formData.amenities, { image: "", title: "", desc: "", isHighlight: false }])} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest">+ Thêm Tiện ích</button>
+               </div>
+               <div className="grid grid-cols-1 gap-4">
+                  {formData.amenities.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center gap-6 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group relative">
+                       <div className="text-primary/10 font-black text-3xl italic scale-y-150 w-8">{String(idx + 1).padStart(2, "0")}</div>
+                       <div className="relative size-24 shrink-0 rounded-2xl overflow-hidden shadow-inner border border-slate-50 cursor-pointer" onClick={() => openMediaPicker(`amenities.${idx}.image`)}>
+                          {item.image ? <img src={item.image} className="w-full h-full object-cover" alt="Amenity" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add_photo_alternate</span>}
+                       </div>
+                       <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-3">
+                             <input className="text-lg font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 max-w-[300px]" placeholder="Tên tiện ích..." value={item.title || ""} onChange={(e) => {
+                               const newAm = [...formData.amenities];
+                               newAm[idx].title = e.target.value;
+                               handleInputChange("amenities", newAm);
+                             }} />
+                             <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" className="size-4 rounded border-slate-200 text-primary focus:ring-primary" checked={item.isHighlight} onChange={(e) => {
+                                  const newAm = [...formData.amenities];
+                                  newAm[idx].isHighlight = e.target.checked;
+                                  handleInputChange("amenities", newAm);
+                                }} />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nổi bật</span>
+                             </label>
+                          </div>
+                          <textarea className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 focus:ring-0 min-h-[40px] resize-none" placeholder="Mô tả ngắn..." value={item.desc || ""} onChange={(e) => {
+                               const newAm = [...formData.amenities];
+                               newAm[idx].desc = e.target.value;
+                               handleInputChange("amenities", newAm);
+                             }} />
+                       </div>
+                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button type="button" onClick={() => handleInputChange("amenities", formData.amenities.filter((_: any, i: number) => i !== idx))} className="p-3 text-slate-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined">delete</span></button>
+                          <div className="p-3 cursor-move text-slate-200"><span className="material-symbols-outlined">drag_indicator</span></div>
+                       </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-3">
-                        <input className="text-lg font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 max-w-[300px]" placeholder="Tên tiện ích..." value={item.title || ""} onChange={(e) => {
-                          const newAm = [...formData.amenities];
-                          newAm[idx].title = e.target.value;
-                          handleInputChange("amenities", newAm);
-                        }} />
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" className="size-4 rounded border-slate-200 text-primary focus:ring-primary" checked={item.isHighlight} onChange={(e) => {
-                            const newAm = [...formData.amenities];
-                            newAm[idx].isHighlight = e.target.checked;
-                            handleInputChange("amenities", newAm);
-                          }} />
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nổi bật</span>
-                        </label>
-                      </div>
-                      <textarea className="w-full bg-transparent border-none p-0 text-sm font-medium text-slate-500 focus:ring-0 min-h-[40px] resize-none" placeholder="Mô tả ngắn..." value={item.desc || ""} onChange={(e) => {
-                        const newAm = [...formData.amenities];
-                        newAm[idx].desc = e.target.value;
-                        handleInputChange("amenities", newAm);
-                      }} />
-                    </div>
-                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button type="button" onClick={() => handleInputChange("amenities", formData.amenities.filter((_: any, i: number) => i !== idx))} className="p-3 text-slate-300 hover:text-red-500 transition-colors"><span className="material-symbols-outlined">delete</span></button>
-                      <div className="p-3 cursor-move text-slate-200"><span className="material-symbols-outlined">drag_indicator</span></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+               </div>
             </div>
           )}
           {activeTab === "360" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-slate-900">Virtual Tour 360°</h3>
-                <button type="button" onClick={() => handleInputChange("tour360", [...formData.tour360, { category: "Nội thất", title: "Căn hộ mẫu", link: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Link Tour</button>
-              </div>
-              <div className="space-y-4">
-                {formData.tour360.map((tour: any, idx: number) => (
-                  <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap md:flex-nowrap items-center gap-6 group">
-                    <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined text-3xl">360</span></div>
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Danh mục / Vị trí</label>
-                        <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.category || ""} onChange={(e) => {
-                          const newT = [...formData.tour360];
-                          newT[idx].category = e.target.value;
-                          handleInputChange("tour360", newT);
-                        }} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiêu đề hiển thị</label>
-                        <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.title || ""} onChange={(e) => {
-                          const newT = [...formData.tour360];
-                          newT[idx].title = e.target.value;
-                          handleInputChange("tour360", newT);
-                        }} />
-                      </div>
+               <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-slate-900">Virtual Tour 360°</h3>
+                  <button type="button" onClick={() => handleInputChange("tour360", [...formData.tour360, { category: "Nội thất", title: "Căn hộ mẫu", link: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Link Tour</button>
+               </div>
+               <div className="space-y-4">
+                  {formData.tour360.map((tour: any, idx: number) => (
+                    <div key={idx} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-wrap md:flex-nowrap items-center gap-6 group">
+                       <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined text-3xl">360</span></div>
+                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Danh mục / Vị trí</label>
+                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.category || ""} onChange={(e) => {
+                               const newT = [...formData.tour360];
+                               newT[idx].category = e.target.value;
+                               handleInputChange("tour360", newT);
+                             }} />
+                          </div>
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tiêu đề hiển thị</label>
+                             <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold" value={tour.title || ""} onChange={(e) => {
+                               const newT = [...formData.tour360];
+                               newT[idx].title = e.target.value;
+                               handleInputChange("tour360", newT);
+                             }} />
+                          </div>
+                       </div>
+                       <div className="flex-1 space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Đường dẫn Tour (URL)</label>
+                          <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-primary" placeholder="https://..." value={tour.link || ""} onChange={(e) => {
+                               const newT = [...formData.tour360];
+                               newT[idx].link = e.target.value;
+                               handleInputChange("tour360", newT);
+                          }} />
+                       </div>
+                       <button type="button" onClick={() => handleInputChange("tour360", formData.tour360.filter((_: any, i: number) => i !== idx))} className="text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><span className="material-symbols-outlined">delete</span></button>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Đường dẫn Tour (URL)</label>
-                      <input className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold text-primary" placeholder="https://..." value={tour.link || ""} onChange={(e) => {
-                        const newT = [...formData.tour360];
-                        newT[idx].link = e.target.value;
-                        handleInputChange("tour360", newT);
-                      }} />
-                    </div>
-                    <button type="button" onClick={() => handleInputChange("tour360", formData.tour360.filter((_: any, i: number) => i !== idx))} className="text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"><span className="material-symbols-outlined">delete</span></button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+               </div>
             </div>
           )}
 
           {activeTab === "layout" && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <section>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">map</span> Mặt bằng tổng thể</h3>
-                  <button type="button" onClick={() => handleInputChange("masterPlan", [...formData.masterPlan, { image: "", title: "", desc: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm mới</button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {formData.masterPlan.map((plan: any, idx: number) => (
-                    <div key={idx} className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm group">
-                      <div onClick={() => openMediaPicker(`masterPlan.${idx}.image`)} className="aspect-video relative bg-slate-50 cursor-pointer">
-                        {plan.image ? <img src={plan.image} className="w-full h-full object-cover" alt="Master Plan" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center text-5xl">add_photo_alternate</span>}
-                      </div>
-                      <div className="p-6 space-y-2">
-                        <input className="w-full font-bold text-slate-900 border-none p-0 focus:ring-0" placeholder="Tên mặt bằng..." value={plan.title || ""} onChange={(e) => {
-                          const newP = [...formData.masterPlan];
-                          newP[idx].title = e.target.value;
-                          handleInputChange("masterPlan", newP);
-                        }} />
-                        <input className="w-full text-xs text-slate-500 border-none p-0 focus:ring-0" placeholder="Mô tả tóm tắt..." value={plan.desc || ""} onChange={(e) => {
-                          const newP = [...formData.masterPlan];
-                          newP[idx].desc = e.target.value;
-                          handleInputChange("masterPlan", newP);
-                        }} />
-                      </div>
-                      <button type="button" onClick={() => handleInputChange("masterPlan", formData.masterPlan.filter((_: any, i: number) => i !== idx))} className="absolute top-2 right-2 size-7 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-sm">close</span></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+               <section>
+                  <div className="flex items-center justify-between mb-6">
+                     <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">map</span> Mặt bằng tổng thể</h3>
+                     <button type="button" onClick={() => handleInputChange("masterPlan", [...formData.masterPlan, { image: "", title: "", desc: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm mới</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     {formData.masterPlan.map((plan: any, idx: number) => (
+                        <div key={idx} className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm group">
+                           <div onClick={() => openMediaPicker(`masterPlan.${idx}.image`)} className="aspect-video relative bg-slate-50 cursor-pointer">
+                              {plan.image ? <img src={plan.image} className="w-full h-full object-cover" alt="Master Plan" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center text-5xl">add_photo_alternate</span>}
+                           </div>
+                           <div className="p-6 space-y-2">
+                              <input className="w-full font-bold text-slate-900 border-none p-0 focus:ring-0" placeholder="Tên mặt bằng..." value={plan.title || ""} onChange={(e) => {
+                                 const newP = [...formData.masterPlan];
+                                 newP[idx].title = e.target.value;
+                                 handleInputChange("masterPlan", newP);
+                              }} />
+                              <input className="w-full text-xs text-slate-500 border-none p-0 focus:ring-0" placeholder="Mô tả tóm tắt..." value={plan.desc || ""} onChange={(e) => {
+                                 const newP = [...formData.masterPlan];
+                                 newP[idx].desc = e.target.value;
+                                 handleInputChange("masterPlan", newP);
+                              }} />
+                           </div>
+                           <button type="button" onClick={() => handleInputChange("masterPlan", formData.masterPlan.filter((_: any, i: number) => i !== idx))} className="absolute top-2 right-2 size-7 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-sm">close</span></button>
+                        </div>
+                     ))}
+                  </div>
+               </section>
 
-              <section>
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">floor</span> Layout Căn hộ</h3>
-                  <button type="button" onClick={() => handleInputChange("unitLayouts", [...formData.unitLayouts, { image: "", title: "", type: "2PN", area: "68m2" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Layout</button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {formData.unitLayouts.map((unit: any, idx: number) => (
-                    <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm group relative">
-                      <div onClick={() => openMediaPicker(`unitLayouts.${idx}.image`)} className="aspect-square bg-slate-50 rounded-xl overflow-hidden mb-3 cursor-pointer">
-                        {unit.image ? <img src={unit.image} className="w-full h-full object-cover" alt="Unit Layout" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add</span>}
-                        <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-black rounded uppercase">{unit.type}</div>
-                      </div>
-                      <input className="w-full font-bold text-[13px] border-none p-0 focus:ring-0" value={unit.title || ""} onChange={(e) => {
-                        const newU = [...formData.unitLayouts];
-                        newU[idx].title = e.target.value;
-                        handleInputChange("unitLayouts", newU);
-                      }} />
-                      <input className="w-full text-[10px] text-slate-400 font-bold border-none p-0 focus:ring-0" value={unit.area || ""} onChange={(e) => {
-                        const newU = [...formData.unitLayouts];
-                        newU[idx].area = e.target.value;
-                        handleInputChange("unitLayouts", newU);
-                      }} />
-                      <button type="button" onClick={() => handleInputChange("unitLayouts", formData.unitLayouts.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-xs">close</span></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+               <section>
+                  <div className="flex items-center justify-between mb-6">
+                     <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">floor</span> Layout Căn hộ</h3>
+                     <button type="button" onClick={() => handleInputChange("unitLayouts", [...formData.unitLayouts, { image: "", title: "", type: "2PN", area: "68m2" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Layout</button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     {formData.unitLayouts.map((unit: any, idx: number) => (
+                        <div key={idx} className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm group relative">
+                           <div onClick={() => openMediaPicker(`unitLayouts.${idx}.image`)} className="aspect-square bg-slate-50 rounded-xl overflow-hidden mb-3 cursor-pointer">
+                              {unit.image ? <img src={unit.image} className="w-full h-full object-cover" alt="Unit Layout" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add</span>}
+                              <div className="absolute bottom-2 left-2 px-2 py-0.5 bg-primary text-white text-[10px] font-black rounded uppercase">{unit.type}</div>
+                           </div>
+                           <input className="w-full font-bold text-[13px] border-none p-0 focus:ring-0" value={unit.title || ""} onChange={(e) => {
+                              const newU = [...formData.unitLayouts];
+                              newU[idx].title = e.target.value;
+                              handleInputChange("unitLayouts", newU);
+                           }} />
+                           <input className="w-full text-[10px] text-slate-400 font-bold border-none p-0 focus:ring-0" value={unit.area || ""} onChange={(e) => {
+                              const newU = [...formData.unitLayouts];
+                              newU[idx].area = e.target.value;
+                              handleInputChange("unitLayouts", newU);
+                           }} />
+                           <button type="button" onClick={() => handleInputChange("unitLayouts", formData.unitLayouts.filter((_: any, i: number) => i !== idx))} className="absolute -top-2 -right-2 size-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-xs">close</span></button>
+                        </div>
+                     ))}
+                  </div>
+               </section>
             </div>
           )}
 
           {activeTab === "media" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">Thư viện Hình ảnh</h3>
-                  <button type="button" onClick={() => handleInputChange("mediaImages", [...formData.mediaImages, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm ảnh</button>
-                </div>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                  {formData.mediaImages.map((img: any, idx: number) => (
-                    <div key={idx} className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 group overflow-hidden cursor-pointer" onClick={() => openMediaPicker(`mediaImages.${idx}.image`)}>
-                      {img.image ? <img src={img.image} className="w-full h-full object-cover" alt="Gallery" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add</span>}
-                      <button type="button" onClick={(e) => { e.stopPropagation(); handleInputChange("mediaImages", formData.mediaImages.filter((_: any, i: number) => i !== idx)); }} className="absolute top-2 right-2 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-[12px]">close</span></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">Thư viện Video</h3>
-                  <button type="button" onClick={() => handleInputChange("mediaVideos", [...formData.mediaVideos, { title: "", link: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Video</button>
-                </div>
-                <div className="space-y-3">
-                  {formData.mediaVideos.map((vid: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 group">
-                      <div className="size-10 rounded-xl bg-red-100 text-red-500 flex items-center justify-center shrink-0"><span className="material-symbols-outlined">play_circle</span></div>
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input className="w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" placeholder="Tiêu đề video..." value={vid.title || ""} onChange={(e) => {
-                          const newV = [...formData.mediaVideos];
-                          newV[idx].title = e.target.value;
-                          handleInputChange("mediaVideos", newV);
-                        }} />
-                        <input className="w-full bg-transparent border-none p-0 text-sm font-medium text-primary focus:ring-0" placeholder="Link Youtube/Vimeo..." value={vid.link || ""} onChange={(e) => {
-                          const newV = [...formData.mediaVideos];
-                          newV[idx].link = e.target.value;
-                          handleInputChange("mediaVideos", newV);
-                        }} />
-                      </div>
-                      <button type="button" onClick={() => handleInputChange("mediaVideos", formData.mediaVideos.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-colors"><span className="material-symbols-outlined">delete</span></button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="text-xl font-bold text-slate-900">Thư viện Hình ảnh</h3>
+                     <button type="button" onClick={() => handleInputChange("mediaImages", [...formData.mediaImages, { image: "", title: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm ảnh</button>
+                  </div>
+                  <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+                     {formData.mediaImages.map((img: any, idx: number) => (
+                        <div key={idx} className="relative aspect-square rounded-2xl bg-slate-50 border border-slate-100 group overflow-hidden cursor-pointer" onClick={() => openMediaPicker(`mediaImages.${idx}.image`)}>
+                           {img.image ? <img src={img.image} className="w-full h-full object-cover" alt="Gallery" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">add</span>}
+                           <button type="button" onClick={(e) => { e.stopPropagation(); handleInputChange("mediaImages", formData.mediaImages.filter((_: any, i: number) => i !== idx)); }} className="absolute top-2 right-2 size-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg flex items-center justify-center"><span className="material-symbols-outlined text-[12px]">close</span></button>
+                        </div>
+                     ))}
+                  </div>
+               </section>
+               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="text-xl font-bold text-slate-900">Thư viện Video</h3>
+                     <button type="button" onClick={() => handleInputChange("mediaVideos", [...formData.mediaVideos, { title: "", link: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm Video</button>
+                  </div>
+                  <div className="space-y-3">
+                     {formData.mediaVideos.map((vid: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 group">
+                           <div className="size-10 rounded-xl bg-red-100 text-red-500 flex items-center justify-center shrink-0"><span className="material-symbols-outlined">play_circle</span></div>
+                           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <input className="w-full bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0" placeholder="Tiêu đề video..." value={vid.title || ""} onChange={(e) => {
+                                 const newV = [...formData.mediaVideos];
+                                 newV[idx].title = e.target.value;
+                                 handleInputChange("mediaVideos", newV);
+                              }} />
+                              <input className="w-full bg-transparent border-none p-0 text-sm font-medium text-primary focus:ring-0" placeholder="Link Youtube/Vimeo..." value={vid.link || ""} onChange={(e) => {
+                                 const newV = [...formData.mediaVideos];
+                                 newV[idx].link = e.target.value;
+                                 handleInputChange("mediaVideos", newV);
+                              }} />
+                           </div>
+                           <button type="button" onClick={() => handleInputChange("mediaVideos", formData.mediaVideos.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-colors"><span className="material-symbols-outlined">delete</span></button>
+                        </div>
+                     ))}
+                  </div>
+               </section>
             </div>
           )}
 
           {activeTab === "pricing" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">sell</span> Bảng giá chi tiết</h3>
-                  <button type="button" onClick={() => handleInputChange("pricingProducts", [...formData.pricingProducts, { code: "A.01", type: "Căn hộ", area: "68m2", price: "4.2 Tỷ" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm sản phẩm</button>
-                </div>
-                <div className="overflow-hidden rounded-2xl border border-slate-100">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      <tr>
-                        <th className="px-6 py-4">Mã</th>
-                        <th className="px-6 py-4">Loại</th>
-                        <th className="px-6 py-4">Diện tích</th>
-                        <th className="px-6 py-4">Giá (VND)</th>
-                        <th className="px-6 py-4"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {formData.pricingProducts.map((prod: any, idx: number) => (
-                        <tr key={idx} className="group hover:bg-slate-50/50 transition-colors uppercase font-bold text-xs text-slate-600">
-                          <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 font-bold text-slate-900" value={prod.code || ""} onChange={(e) => {
-                            const newP = [...formData.pricingProducts]; newP[idx].code = e.target.value; handleInputChange("pricingProducts", newP);
-                          }} /></td>
-                          <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.type || ""} onChange={(e) => {
-                            const newP = [...formData.pricingProducts]; newP[idx].type = e.target.value; handleInputChange("pricingProducts", newP);
-                          }} /></td>
-                          <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.area || ""} onChange={(e) => {
-                            const newP = [...formData.pricingProducts]; newP[idx].area = e.target.value; handleInputChange("pricingProducts", newP);
-                          }} /></td>
-                          <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 text-primary" value={prod.price || ""} onChange={(e) => {
-                            const newP = [...formData.pricingProducts]; newP[idx].price = e.target.value; handleInputChange("pricingProducts", newP);
-                          }} /></td>
-                          <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100"><button type="button" onClick={() => handleInputChange("pricingProducts", formData.pricingProducts.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button></td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                     <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-primary">sell</span> Bảng giá chi tiết</h3>
+                     <button type="button" onClick={() => handleInputChange("pricingProducts", [...formData.pricingProducts, { code: "A.01", type: "Căn hộ", area: "68m2", price: "4.2 Tỷ" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm sản phẩm</button>
+                  </div>
+                  <div className="overflow-hidden rounded-2xl border border-slate-100">
+                     <table className="w-full text-left">
+                        <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                           <tr>
+                              <th className="px-6 py-4">Mã</th>
+                              <th className="px-6 py-4">Loại</th>
+                              <th className="px-6 py-4">Diện tích</th>
+                              <th className="px-6 py-4">Giá (VND)</th>
+                              <th className="px-6 py-4"></th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                           {formData.pricingProducts.map((prod: any, idx: number) => (
+                              <tr key={idx} className="group hover:bg-slate-50/50 transition-colors uppercase font-bold text-xs text-slate-600">
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 font-bold text-slate-900" value={prod.code || ""} onChange={(e) => {
+                                    const newP = [...formData.pricingProducts]; newP[idx].code = e.target.value; handleInputChange("pricingProducts", newP);
+                                 }} /></td>
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.type || ""} onChange={(e) => {
+                                    const newP = [...formData.pricingProducts]; newP[idx].type = e.target.value; handleInputChange("pricingProducts", newP);
+                                 }} /></td>
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0" value={prod.area || ""} onChange={(e) => {
+                                    const newP = [...formData.pricingProducts]; newP[idx].area = e.target.value; handleInputChange("pricingProducts", newP);
+                                 }} /></td>
+                                 <td className="px-6 py-4"><input className="w-full bg-transparent border-none p-0 focus:ring-0 text-primary" value={prod.price || ""} onChange={(e) => {
+                                    const newP = [...formData.pricingProducts]; newP[idx].price = e.target.value; handleInputChange("pricingProducts", newP);
+                                 }} /></td>
+                                 <td className="px-6 py-4 text-right opacity-0 group-hover:opacity-100"><button type="button" onClick={() => handleInputChange("pricingProducts", formData.pricingProducts.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button></td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </div>
+               </section>
 
-              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6"><span className="material-symbols-outlined text-primary">payments</span> Phương thức thanh toán</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {formData.paymentPlans.map((plan: any, idx: number) => (
-                    <div key={idx} className={`p-6 rounded-2xl border transition-all cursor-pointer ${plan.isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-slate-100 hover:border-primary/30'}`} onClick={() => {
-                      const newP = formData.paymentPlans.map((p: any, i: number) => ({ ...p, isSelected: i === idx }));
-                      handleInputChange("paymentPlans", newP);
-                    }}>
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-bold text-slate-900">{plan.title}</h4>
-                        <span className="material-symbols-outlined text-primary">{plan.isSelected ? 'check_circle' : 'radio_button_unchecked'}</span>
-                      </div>
-                      <p className="text-xs text-slate-500 font-medium leading-relaxed">{plan.desc}</p>
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => handleInputChange("paymentPlans", [...formData.paymentPlans, { title: "Chế độ mới", desc: "Mô tả đợt thanh toán...", isSelected: false }])} className="border-2 border-dashed border-slate-100 rounded-2xl p-6 flex items-center justify-center text-slate-300 hover:text-primary hover:border-primary/20 transition-all font-black text-xs uppercase tracking-widest">+ Thêm chế độ</button>
-                </div>
-              </section>
+               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                  <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6"><span className="material-symbols-outlined text-primary">payments</span> Phương thức thanh toán</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     {formData.paymentPlans.map((plan: any, idx: number) => (
+                        <div key={idx} className={`p-6 rounded-2xl border transition-all cursor-pointer ${plan.isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-slate-100 hover:border-primary/30'}`} onClick={() => {
+                           const newP = formData.paymentPlans.map((p: any, i: number) => ({ ...p, isSelected: i === idx }));
+                           handleInputChange("paymentPlans", newP);
+                        }}>
+                           <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-bold text-slate-900">{plan.title}</h4>
+                              <span className="material-symbols-outlined text-primary">{plan.isSelected ? 'check_circle' : 'radio_button_unchecked'}</span>
+                           </div>
+                           <p className="text-xs text-slate-500 font-medium leading-relaxed">{plan.desc}</p>
+                        </div>
+                     ))}
+                     <button type="button" onClick={() => handleInputChange("paymentPlans", [...formData.paymentPlans, { title: "Chế độ mới", desc: "Mô tả đợt thanh toán...", isSelected: false }])} className="border-2 border-dashed border-slate-100 rounded-2xl p-6 flex items-center justify-center text-slate-300 hover:text-primary hover:border-primary/20 transition-all font-black text-xs uppercase tracking-widest">+ Thêm chế độ</button>
+                  </div>
+               </section>
             </div>
           )}
 
           {activeTab === "progress" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-slate-900">Mốc tiến độ thi công ({formData.progressHistory.length})</h3>
-                <button type="button" onClick={() => handleInputChange("progressHistory", [...formData.progressHistory, { image: "", title: "", desc: "", date: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm mốc</button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {formData.progressHistory.map((item: any, idx: number) => (
-                  <div key={idx} className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm group">
-                    <div onClick={() => openMediaPicker(`progressHistory.${idx}.image`)} className="aspect-video relative bg-slate-50 cursor-pointer">
-                      {item.image ? <img src={item.image} className="w-full h-full object-cover" alt="Progress" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center text-5xl">add_a_photo</span>}
-                      <div className="absolute top-4 left-4 size-8 rounded-xl bg-primary text-white font-black text-xs flex items-center justify-center shadow-lg uppercase">#{String(idx + 1).padStart(2, '0')}</div>
-                    </div>
-                    <div className="p-8 space-y-4">
-                      <div className="flex flex-col gap-1">
-                        <input className="w-full font-black text-lg text-slate-900 border-none p-0 focus:ring-0" placeholder="Tiêu đề mốc..." value={item.title || ""} onChange={(e) => {
-                          const newH = [...formData.progressHistory]; newH[idx].title = e.target.value; handleInputChange("progressHistory", newH);
-                        }} />
-                        <input type="text" className="w-full text-[10px] font-black text-primary uppercase tracking-widest border-none p-0 focus:ring-0" placeholder="Tháng 01, 2024" value={item.date || ""} onChange={(e) => {
-                          const newH = [...formData.progressHistory]; newH[idx].date = e.target.value; handleInputChange("progressHistory", newH);
-                        }} />
-                      </div>
-                      <textarea className="w-full text-sm text-slate-500 font-medium border-none p-0 focus:ring-0 min-h-[60px] resize-none" placeholder="Chi tiết thi công..." value={item.desc || ""} onChange={(e) => {
-                        const newH = [...formData.progressHistory]; newH[idx].desc = e.target.value; handleInputChange("progressHistory", newH);
-                      }} />
-                    </div>
-                    <button type="button" onClick={() => handleInputChange("progressHistory", formData.progressHistory.filter((_: any, i: number) => i !== idx))} className="absolute top-4 right-4 size-8 bg-black/20 hover:bg-red-500 text-white rounded-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><span className="material-symbols-outlined text-sm">delete</span></button>
-                  </div>
-                ))}
-              </div>
+               <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-slate-900">Mốc tiến độ thi công ({formData.progressHistory.length})</h3>
+                  <button type="button" onClick={() => handleInputChange("progressHistory", [...formData.progressHistory, { image: "", title: "", desc: "", date: "" }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm mốc</button>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {formData.progressHistory.map((item: any, idx: number) => (
+                     <div key={idx} className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm group">
+                        <div onClick={() => openMediaPicker(`progressHistory.${idx}.image`)} className="aspect-video relative bg-slate-50 cursor-pointer">
+                           {item.image ? <img src={item.image} className="w-full h-full object-cover" alt="Progress" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center text-5xl">add_a_photo</span>}
+                           <div className="absolute top-4 left-4 size-8 rounded-xl bg-primary text-white font-black text-xs flex items-center justify-center shadow-lg uppercase">#{String(idx + 1).padStart(2, '0')}</div>
+                        </div>
+                        <div className="p-8 space-y-4">
+                           <div className="flex flex-col gap-1">
+                              <input className="w-full font-black text-lg text-slate-900 border-none p-0 focus:ring-0" placeholder="Tiêu đề mốc..." value={item.title || ""} onChange={(e) => {
+                                 const newH = [...formData.progressHistory]; newH[idx].title = e.target.value; handleInputChange("progressHistory", newH);
+                              }} />
+                              <input type="text" className="w-full text-[10px] font-black text-primary uppercase tracking-widest border-none p-0 focus:ring-0" placeholder="Tháng 01, 2024" value={item.date || ""} onChange={(e) => {
+                                 const newH = [...formData.progressHistory]; newH[idx].date = e.target.value; handleInputChange("progressHistory", newH);
+                              }} />
+                           </div>
+                           <textarea className="w-full text-sm text-slate-500 font-medium border-none p-0 focus:ring-0 min-h-[60px] resize-none" placeholder="Chi tiết thi công..." value={item.desc || ""} onChange={(e) => {
+                                 const newH = [...formData.progressHistory]; newH[idx].desc = e.target.value; handleInputChange("progressHistory", newH);
+                           }} />
+                        </div>
+                        <button type="button" onClick={() => handleInputChange("progressHistory", formData.progressHistory.filter((_: any, i: number) => i !== idx))} className="absolute top-4 right-4 size-8 bg-black/20 hover:bg-red-500 text-white rounded-xl backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><span className="material-symbols-outlined text-sm">delete</span></button>
+                     </div>
+                  ))}
+               </div>
             </div>
           )}
 
           {activeTab === "contact" && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <section className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
-                <div className="flex flex-col gap-1">
-                  <h3 className="text-2xl font-black text-slate-900 font-display">Cấu hình liên hệ</h3>
-                  <p className="text-slate-400 text-sm font-medium">Nhận yêu cầu tư vấn trực tiếp từ khách hàng quan tâm</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email nhận Lead</label>
-                    <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
-                      <span className="material-symbols-outlined text-primary">alternate_email</span>
-                      <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="admin@domain.com" value={formData.email || ""} onChange={(e) => handleInputChange("email", e.target.value)} />
-                    </div>
+               <section className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
+                  <div className="flex flex-col gap-1">
+                     <h3 className="text-2xl font-black text-slate-900 font-display">Cấu hình liên hệ</h3>
+                     <p className="text-slate-400 text-sm font-medium">Nhận yêu cầu tư vấn trực tiếp từ khách hàng quan tâm</p>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hotline dự án</label>
-                    <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
-                      <span className="material-symbols-outlined text-primary">call</span>
-                      <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="0988..." value={formData.phone || ""} onChange={(e) => handleInputChange("phone", e.target.value)} />
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email nhận Lead</label>
+                        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
+                           <span className="material-symbols-outlined text-primary">alternate_email</span>
+                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="admin@domain.com" value={formData.email || ""} onChange={(e) => handleInputChange("email", e.target.value)} />
+                        </div>
+                     </div>
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hotline dự án</label>
+                        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 group focus-within:border-primary transition-all">
+                           <span className="material-symbols-outlined text-primary">call</span>
+                           <input className="bg-transparent border-none p-0 flex-1 text-sm font-bold text-slate-700 focus:ring-0" placeholder="0988..." value={formData.phone || ""} onChange={(e) => handleInputChange("phone", e.target.value)} />
+                        </div>
+                     </div>
                   </div>
-                </div>
-              </section>
-              <section className="bg-primary/5 p-10 rounded-[40px] border border-primary/10 flex items-start gap-6">
-                <div className="p-3 bg-white rounded-2xl shadow-sm text-primary"><span className="material-symbols-outlined text-3xl">notifications_active</span></div>
-                <div className="space-y-4 flex-1">
-                  <div>
-                    <h4 className="font-bold text-slate-900 leading-none">Thông báo tức thời</h4>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Hệ thống sẽ ping ngay khi có khách để lại thông tin</p>
+               </section>
+               <section className="bg-primary/5 p-10 rounded-[40px] border border-primary/10 flex items-start gap-6">
+                  <div className="p-3 bg-white rounded-2xl shadow-sm text-primary"><span className="material-symbols-outlined text-3xl">notifications_active</span></div>
+                  <div className="space-y-4 flex-1">
+                     <div>
+                        <h4 className="font-bold text-slate-900 leading-none">Thông báo tức thời</h4>
+                        <p className="text-xs text-slate-500 font-medium mt-1">Hệ thống sẽ ping ngay khi có khách để lại thông tin</p>
+                     </div>
+                     <div className="space-y-3">
+                        <label className="flex items-center gap-4 cursor-pointer group">
+                           <input type="checkbox" className="size-5 rounded-lg border-primary/20 text-primary focus:ring-primary shadow-sm" checked={formData.notificationSettings.emailConfirm} onChange={(e) => handleInputChange("notificationSettings", { ...formData.notificationSettings, emailConfirm: e.target.checked })} />
+                           <span className="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">Gửi Email xác nhận tự động</span>
+                        </label>
+                        <label className="flex items-center gap-4 cursor-pointer group">
+                           <input type="checkbox" className="size-5 rounded-lg border-primary/20 text-primary focus:ring-primary shadow-sm" checked={formData.notificationSettings.zaloNotification} onChange={(e) => handleInputChange("notificationSettings", { ...formData.notificationSettings, zaloNotification: e.target.checked })} />
+                           <span className="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">Gửi thông báo Zalo/SMS cho quản lý</span>
+                        </label>
+                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <label className="flex items-center gap-4 cursor-pointer group">
-                      <input type="checkbox" className="size-5 rounded-lg border-primary/20 text-primary focus:ring-primary shadow-sm" checked={formData.notificationSettings.emailConfirm} onChange={(e) => handleInputChange("notificationSettings", { ...formData.notificationSettings, emailConfirm: e.target.checked })} />
-                      <span className="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">Gửi Email xác nhận tự động</span>
-                    </label>
-                    <label className="flex items-center gap-4 cursor-pointer group">
-                      <input type="checkbox" className="size-5 rounded-lg border-primary/20 text-primary focus:ring-primary shadow-sm" checked={formData.notificationSettings.zaloNotification} onChange={(e) => handleInputChange("notificationSettings", { ...formData.notificationSettings, zaloNotification: e.target.checked })} />
-                      <span className="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">Gửi thông báo Zalo/SMS cho quản lý</span>
-                    </label>
-                  </div>
-                </div>
-              </section>
+               </section>
             </div>
           )}
         </div>
@@ -1030,110 +1201,114 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
         {/* Sidebar Area (1/3) */}
         <div className="space-y-6">
           <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Trạng thái xuất bản</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-50 bg-slate-50/30">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-primary">public</span>
-                  <span className="text-sm font-bold text-slate-700">Công khai</span>
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Trạng thái xuất bản</h3>
+             <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-50 bg-slate-50/30">
+                   <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-primary">public</span>
+                      <span className="text-sm font-bold text-slate-700">Công khai</span>
+                   </div>
+                   <input type="checkbox" className="size-6 rounded-lg border-slate-200 text-primary focus:ring-primary shadow-sm" checked={formData.publishedStatus === "published"} onChange={(e) => handleInputChange("publishedStatus", e.target.checked ? "published" : "draft")} />
                 </div>
-                <input type="checkbox" className="size-6 rounded-lg border-slate-200 text-primary focus:ring-primary shadow-sm" checked={formData.publishedStatus === "published"} onChange={(e) => handleInputChange("publishedStatus", e.target.checked ? "published" : "draft")} />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Đường dẫn dự án</label>
-                <div className={`flex items-center gap-2 bg-slate-50 p-3 rounded-xl border group transition-all ${errors.url ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-100'}`}>
-                  <span className="text-slate-300 text-[10px] font-bold">/du-an/</span>
-                  <input className="flex-1 bg-transparent border-none p-0 text-xs font-black text-primary placeholder:text-primary/20 focus:ring-0" placeholder="riverside-complex" value={formData.url || ""} onChange={(e) => handleInputChange("url", e.target.value)} />
+                <div>
+                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Đường dẫn dự án</label>
+                   <div className={`flex items-center gap-2 bg-slate-50 p-3 rounded-xl border group transition-all ${errors.url ? 'border-red-200 ring-1 ring-red-100' : 'border-slate-100'}`}>
+                      <span className="text-slate-300 text-[10px] font-bold">/du-an/</span>
+                      <input className="flex-1 bg-transparent border-none p-0 text-xs font-black text-primary placeholder:text-primary/20 focus:ring-0" placeholder="riverside-complex" value={formData.url || ""} onChange={(e) => handleInputChange("url", e.target.value)} />
+                   </div>
+                   {errors.url && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1">{errors.url}</p>}
                 </div>
-                {errors.url && <p className="text-red-500 text-[10px] font-bold mt-1.5 ml-1">{errors.url}</p>}
-              </div>
-            </div>
+             </div>
           </section>
 
           <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Hình ảnh đại diện</h3>
-            <div className="space-y-8">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Ảnh phối cảnh (16:9)</label>
-                <div onClick={() => openMediaPicker("perspectiveImage")} className="relative aspect-video w-full rounded-2xl bg-slate-50 border-2 border-dashed border-slate-100 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden shadow-inner">
-                  {formData.perspectiveImage ? <img src={formData.perspectiveImage} className="w-full h-full object-cover" alt="Perspective" /> : (
-                    <div className="text-center">
-                      <span className="material-symbols-outlined text-3xl text-slate-200">add_photo_alternate</span>
-                      <p className="text-[9px] text-slate-300 mt-2 font-black uppercase tracking-widest">Tải ảnh lên</p>
-                    </div>
-                  )}
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Hình ảnh đại diện</h3>
+             <div className="space-y-8">
+                <div>
+                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Ảnh phối cảnh (16:9)</label>
+                   <div onClick={() => openMediaPicker("perspectiveImage")} className="relative aspect-video w-full rounded-2xl bg-slate-50 border-2 border-dashed border-slate-100 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden shadow-inner">
+                      {formData.perspectiveImage ? <img src={formData.perspectiveImage} className="w-full h-full object-cover" alt="Perspective" /> : (
+                        <div className="text-center">
+                           <span className="material-symbols-outlined text-3xl text-slate-200">add_photo_alternate</span>
+                           <p className="text-[9px] text-slate-300 mt-2 font-black uppercase tracking-widest">Tải ảnh lên</p>
+                        </div>
+                      )}
+                   </div>
                 </div>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Ảnh Chân Trang (Footer)</label>
-                <div onClick={() => openMediaPicker("footerImage")} className="relative aspect-[3/1] w-full rounded-2xl bg-slate-50 border-2 border-dashed border-slate-100 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden shadow-inner">
-                  {formData.footerImage ? <img src={formData.footerImage} className="w-full h-full object-cover" alt="Footer" /> : (
-                    <div className="text-center">
-                      <span className="material-symbols-outlined text-3xl text-slate-200">image</span>
-                      <p className="text-[9px] text-slate-300 mt-2 font-black uppercase tracking-widest">Tải ảnh lên</p>
-                    </div>
-                  )}
+                <div>
+                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Ảnh Chân Trang (Footer)</label>
+                   <div onClick={() => openMediaPicker("footerImage")} className="relative aspect-[3/1] w-full rounded-2xl bg-slate-50 border-2 border-dashed border-slate-100 flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 transition-all overflow-hidden shadow-inner">
+                      {formData.footerImage ? <img src={formData.footerImage} className="w-full h-full object-cover" alt="Footer" /> : (
+                        <div className="text-center">
+                           <span className="material-symbols-outlined text-3xl text-slate-200">image</span>
+                           <p className="text-[9px] text-slate-300 mt-2 font-black uppercase tracking-widest">Tải ảnh lên</p>
+                        </div>
+                      )}
+                   </div>
                 </div>
-              </div>
-            </div>
+             </div>
           </section>
 
           <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Loại Banner</h3>
-            <div className="grid grid-cols-1 gap-3">
-              <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${formData.bannerType === 'full_banner'
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                  : 'border-slate-100 hover:border-primary/30'
-                }`}>
-                <input
-                  type="radio"
-                  name="bannerType"
-                  value="full_banner"
-                  checked={formData.bannerType === 'full_banner'}
-                  onChange={(e) => handleInputChange('bannerType', e.target.value)}
-                  className="sr-only"
-                />
-                <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${formData.bannerType === 'full_banner' ? 'border-primary' : 'border-slate-300'
-                  }`}>
-                  {formData.bannerType === 'full_banner' && <span className="size-2 rounded-full bg-primary block" />}
-                </span>
-                <div>
-                  <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">panorama</span>
-                  <span className="text-sm font-bold text-slate-800">Full Banner</span>
-                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">Ảnh banner toàn màn hình</p>
-                </div>
-              </label>
-              <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${formData.bannerType === 'slide_banner'
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                  : 'border-slate-100 hover:border-primary/30'
-                }`}>
-                <input
-                  type="radio"
-                  name="bannerType"
-                  value="slide_banner"
-                  checked={formData.bannerType === 'slide_banner'}
-                  onChange={(e) => handleInputChange('bannerType', e.target.value)}
-                  className="sr-only"
-                />
-                <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${formData.bannerType === 'slide_banner' ? 'border-primary' : 'border-slate-300'
-                  }`}>
-                  {formData.bannerType === 'slide_banner' && <span className="size-2 rounded-full bg-primary block" />}
-                </span>
-                <div>
-                  <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">view_carousel</span>
-                  <span className="text-sm font-bold text-slate-800">Slide Banner</span>
-                  <p className="text-[10px] text-slate-400 font-medium mt-0.5">Hiển thị dạng slideshow</p>
-                </div>
-              </label>
-            </div>
+             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Loại Banner</h3>
+             <div className="grid grid-cols-1 gap-3">
+               <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                 formData.bannerType === 'full_banner'
+                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                   : 'border-slate-100 hover:border-primary/30'
+               }`}>
+                 <input
+                   type="radio"
+                   name="bannerType"
+                   value="full_banner"
+                   checked={formData.bannerType === 'full_banner'}
+                   onChange={(e) => handleInputChange('bannerType', e.target.value)}
+                   className="sr-only"
+                 />
+                 <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                   formData.bannerType === 'full_banner' ? 'border-primary' : 'border-slate-300'
+                 }`}>
+                   {formData.bannerType === 'full_banner' && <span className="size-2 rounded-full bg-primary block" />}
+                 </span>
+                 <div>
+                   <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">panorama</span>
+                   <span className="text-sm font-bold text-slate-800">Full Banner</span>
+                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">Ảnh banner toàn màn hình</p>
+                 </div>
+               </label>
+               <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                 formData.bannerType === 'slide_banner'
+                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                   : 'border-slate-100 hover:border-primary/30'
+               }`}>
+                 <input
+                   type="radio"
+                   name="bannerType"
+                   value="slide_banner"
+                   checked={formData.bannerType === 'slide_banner'}
+                   onChange={(e) => handleInputChange('bannerType', e.target.value)}
+                   className="sr-only"
+                 />
+                 <span className={`size-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                   formData.bannerType === 'slide_banner' ? 'border-primary' : 'border-slate-300'
+                 }`}>
+                   {formData.bannerType === 'slide_banner' && <span className="size-2 rounded-full bg-primary block" />}
+                 </span>
+                 <div>
+                   <span className="material-symbols-outlined text-[18px] text-primary align-middle mr-1">view_carousel</span>
+                   <span className="text-sm font-bold text-slate-800">Slide Banner</span>
+                   <p className="text-[10px] text-slate-400 font-medium mt-0.5">Hiển thị dạng slideshow</p>
+                 </div>
+               </label>
+             </div>
           </section>
         </div>
       </div>
 
-      <MediaPicker
+      <MediaPicker 
         isOpen={isMediaPickerOpen}
-        onClose={() => setIsMediaPickerOpen(false)}
-        onSelect={handleMediaSelect}
+        onClose={() => setIsMediaPickerOpen(false)} 
+        onSelect={handleMediaSelect} 
       />
     </form>
   );

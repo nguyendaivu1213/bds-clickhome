@@ -11,7 +11,7 @@ class ZoneArticle extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'zone_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
+        'zone_id', 'author_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
     ];
 
     public $translatedAttributes = [
@@ -21,5 +21,10 @@ class ZoneArticle extends Model implements TranslatableContract
     public function zone()
     {
         return $this->belongsTo(ProjectZone::class, 'zone_id');
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }
