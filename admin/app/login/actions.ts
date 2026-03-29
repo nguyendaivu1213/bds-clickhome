@@ -7,10 +7,10 @@ export async function login(prevState: any, formData: FormData) {
   const username = formData.get('username')
   const password = formData.get('password')
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1/admin";
   
   try {
-    const res = await fetch(`${API_URL}/admin/login`, {
+    const res = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ email: username, password })
