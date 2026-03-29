@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState, useMemo } from "react";
+import { use, useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
 import { fetchProject, fetchArticlesForProject, fetchProjectZones, fetchProjectProperties, Project, ProjectArticle, ProjectZone, PropertyItem } from "@/lib/api";
 import DynamicArticleRenderer from "@/components/articles/DynamicArticleRenderer";
@@ -25,9 +25,10 @@ export default function ProjectSectionPage({
     const [activeSlideIndex, setActiveSlideIndex] = useState<number>(0);
     const [activePlanIndex, setActivePlanIndex] = useState<number>(0);
     const [properties, setProperties] = useState<PropertyItem[]>([]);
-    const [productOffset, setProductOffset] = useState<number>(0);
-    const [amenityOffset, setAmenityOffset] = useState<number>(0);
-    const PRODUCTS_PER_PAGE = 3;
+    
+    const bannerRef = useRef<HTMLDivElement>(null);
+    const productRef = useRef<HTMLDivElement>(null);
+    const amenityRef = useRef<HTMLDivElement>(null);
 
     const displayImages = useMemo(() => {
         const slideMedia = project?.slide_images || [];
@@ -42,12 +43,93 @@ export default function ProjectSectionPage({
             ];
     }, [project]);
 
-    // Handle auto-slide or initialization if needed
-    useEffect(() => {
-        if (displayImages.length > 0 && activeSlideIndex >= displayImages.length) {
-            setActiveSlideIndex(0);
-        }
-    }, [displayImages, activeSlideIndex]);
+    // Desktop Drag-to-Scroll Helper Hook Logic applied functionally
+    const applyDragTracker = (ref: React.RefObject<HTMLDivElement | null>) => {
+        useEffect(() => {
+            const slider = ref.current;
+            if (!slider) return;
+            
+            let isDown = false;
+            let startX: number;
+            let scrollLeft: number;
+
+            const mouseDown = (e: MouseEvent) => {
+                isDown = true;
+                slider.style.cursor = 'grabbing';
+                // Remove snap class smoothly so dragging isn't jittery
+                slider.style.scrollSnapType = 'none';
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            };
+
+            const mouseLeave = () => {
+                isDown = false;
+                slider.style.cursor = 'grab';
+                slider.style.scrollSnapType = 'x mandatory';
+            };
+
+            const mouseUp = () => {
+                isDown = false;
+                slider.style.cursor = 'grab';
+                slider.style.scrollSnapType = 'x mandatory';
+                
+                // Track active index specifically for Banner
+                if (ref === bannerRef && slider.children[0]) {
+                    const slideWidth = (slider.children[0] as HTMLElement).offsetWidth;
+                    const index = Math.round(slider.scrollLeft / slideWidth);
+                    setActiveSlideIndex(index);
+                }
+            };
+
+            const mouseMove = (e: MouseEvent) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX); // scroll speed 1:1
+                slider.scrollLeft = scrollLeft - walk;
+            };
+
+            slider.addEventListener('mousedown', mouseDown);
+            slider.addEventListener('mouseleave', mouseLeave);
+            slider.addEventListener('mouseup', mouseUp);
+            slider.addEventListener('mousemove', mouseMove);
+
+            // Scroll listener purely for dot updates on Banner
+            const handleScroll = () => {
+                if (ref === bannerRef && slider.children[0] && !isDown) {
+                    const slideWidth = (slider.children[0] as HTMLElement).offsetWidth;
+                    const index = Math.round(slider.scrollLeft / slideWidth);
+                    if (index !== activeSlideIndex && index >= 0 && index < displayImages.length) {
+                        setActiveSlideIndex(index);
+                    }
+                }
+            };
+            if (ref === bannerRef) {
+                slider.addEventListener('scroll', handleScroll, { passive: true });
+            }
+
+            return () => {
+                slider.removeEventListener('mousedown', mouseDown);
+                slider.removeEventListener('mouseleave', mouseLeave);
+                slider.removeEventListener('mouseup', mouseUp);
+                slider.removeEventListener('mousemove', mouseMove);
+                if (ref === bannerRef) {
+                    slider.removeEventListener('scroll', handleScroll);
+                }
+            };
+        }, [displayImages]);
+    };
+
+    applyDragTracker(bannerRef);
+    applyDragTracker(productRef);
+    applyDragTracker(amenityRef);
+
+    // Xử lý scroll mượt cho Banner, Product, Amenity
+    const scrollSlider = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
+        if (!ref.current || !ref.current.children[0]) return;
+        const slideWidth = (ref.current.children[0] as HTMLElement).offsetWidth;
+        ref.current.scrollBy({ left: direction === 'left' ? -slideWidth : slideWidth, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         fetchProject(slug).then((data) => {
@@ -95,16 +177,20 @@ export default function ProjectSectionPage({
                         <section className="py-10 bg-white">
                             <div className="max-w-7xl mx-auto px-4">
                                 <div className="relative rounded-xl overflow-hidden shadow-lg h-[400px] md:h-[500px] lg:h-[600px] group bg-gray-100">
+                                    <style>{`
+                                        .hide-scrollbar::-webkit-scrollbar { display: none; }
+                                        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                                    `}</style>
                                     <div 
-                                        className="flex h-full transition-transform duration-500 ease-in-out"
-                                        style={{ transform: `translateX(-${activeSlideIndex * 100}%)` }}
+                                        ref={bannerRef}
+                                        className="flex h-full w-full overflow-x-auto snap-x snap-mandatory flex-nowrap hide-scrollbar cursor-grab active:cursor-grabbing"
                                     >
                                         {displayImages.map((img, idx) => (
-                                            <div key={idx} className="w-full h-full flex-shrink-0">
+                                            <div key={idx} className="w-full h-full min-w-full flex-shrink-0 snap-center relative">
                                                 <img
                                                     src={img}
                                                     alt={`${projectName} slide ${idx + 1}`}
-                                                    className="w-full h-full object-cover"
+                                                    className="w-full h-full object-cover pointer-events-none select-none"
                                                 />
                                             </div>
                                         ))}
@@ -112,8 +198,8 @@ export default function ProjectSectionPage({
                                     
                                     {/* Prev Button - SVG Icon */}
                                     <button 
-                                        onClick={() => setActiveSlideIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1))}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                        onClick={() => scrollSlider(bannerRef, 'left')}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm z-10"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
@@ -122,20 +208,26 @@ export default function ProjectSectionPage({
                                     
                                     {/* Next Button - SVG Icon */}
                                     <button 
-                                        onClick={() => setActiveSlideIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1))}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                                        onClick={() => scrollSlider(bannerRef, 'right')}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm z-10"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                                         </svg>
                                     </button>
-
-                                    {/* Pagination 1, 2, 3... */}
+                                    
+                                    {/* Center Pagination indicators using Banner SVG */}
                                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center justify-center gap-2 z-10">
                                         {displayImages.map((_, idx) => (
                                             <button
                                                 key={idx}
-                                                onClick={() => setActiveSlideIndex(idx)}
+                                                onClick={() => {
+                                                    setActiveSlideIndex(idx);
+                                                    if (bannerRef.current && bannerRef.current.children[0]) {
+                                                        const slideW = (bannerRef.current.children[0] as HTMLElement).offsetWidth;
+                                                        bannerRef.current.scrollTo({ left: slideW * idx, behavior: 'smooth' });
+                                                    }
+                                                }}
                                                 className={`size-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center border ${
                                                     activeSlideIndex === idx 
                                                     ? "bg-[#e2cb83] text-white border-[#e2cb83] shadow-md scale-110" 
@@ -197,17 +289,35 @@ export default function ProjectSectionPage({
                         </div>
                     </section>
 
-                    {/* NEW Description with Side Media */}
-                    <section className="py-12 bg-white">
-                        <div className="max-w-7xl mx-auto px-4">
-                            <h2 className="text-3xl font-bold mb-12 text-gray-800 uppercase tracking-tight leading-tight text-center">
-                                TỔNG QUAN DỰ ÁN <br />
-                                <span className="text-[#e2cb83]">{projectName}</span>
-                            </h2>
+                    {/* NEW Description with Side Media - Two layer background */}
+                    <section className="relative py-16 lg:py-20 overflow-hidden">
+                        {/* Layer 1: Footer image background */}
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                            style={{ backgroundImage: `url(${(project as any)?.footer_image_url || (project as any)?.footer_image || displayImages[0] || ''})` }}
+                        />
+                        {/* Layer 2: Color overlay */}
+                        <div className="absolute inset-0 bg-[#62908f]/90" />
 
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-                                {/* Left side: Video or Perspective Image */}
-                                <div className="relative rounded-2xl overflow-hidden shadow-xl aspect-video bg-gray-100 border border-gray-100">
+                        <div className="relative max-w-7xl mx-auto px-4 z-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                                {/* Left side: Text description */}
+                                <div className="lg:col-span-5 text-white">
+                                    <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#e2cb83] tracking-tight leading-tight">
+                                        Tổng quan dự án
+                                    </h2>
+                                    {translation?.overview_description ? (
+                                        <div 
+                                            className="prose prose-sm md:prose-base prose-invert prose-p:text-white/90 prose-li:text-white/90 prose-strong:text-white max-w-none w-full [&_table]:w-full [&_td]:border-white/20 [&_td:first-child]:font-bold [&_ul]:list-disc [&_ul]:ml-4 [&_li]:list-item"
+                                            dangerouslySetInnerHTML={{ __html: translation.overview_description }} 
+                                        />
+                                    ) : (
+                                        <p className="text-white/70 italic">Nội dung đang được cập nhật...</p>
+                                    )}
+                                </div>
+
+                                {/* Right side: Video or Perspective Image */}
+                                <div className="lg:col-span-7 relative rounded-3xl overflow-hidden shadow-2xl aspect-[16/10] bg-black/20 border border-white/20">
                                     {project?.youtube_link && getYouTubeEmbedUrl(project.youtube_link) ? (
                                         <iframe
                                             src={getYouTubeEmbedUrl(project.youtube_link)!}
@@ -217,22 +327,10 @@ export default function ProjectSectionPage({
                                         />
                                     ) : (
                                         <img
-                                            src={project?.perspective_image_url || displayImages[0]}
+                                            src={project?.perspective_image_url || displayImages[0] || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/overview/img-2.jpg"}
                                             alt={projectName}
                                             className="w-full h-full object-cover"
                                         />
-                                    )}
-                                </div>
-
-                                {/* Right side: Text description */}
-                                <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
-                                    {translation?.overview_description ? (
-                                        <div 
-                                            className="prose prose-sm prose-slate max-w-none text-gray-700 w-full [&_table]:w-full [&_table]:text-sm [&_td]:border-b [&_td]:border-gray-50 [&_td]:pb-3 [&_td]:pt-3 [&_td:first-child]:font-bold [&_td:first-child]:w-48 [&_ul]:list-disc [&_ul]:ml-6 [&_li]:list-item"
-                                            dangerouslySetInnerHTML={{ __html: translation.overview_description }} 
-                                        />
-                                    ) : (
-                                        <p className="text-gray-500 italic">Nội dung đang được cập nhật...</p>
                                     )}
                                 </div>
                             </div>
@@ -241,35 +339,37 @@ export default function ProjectSectionPage({
 
                     {/* Products Section (Sản Phẩm) */}
                     {properties.length > 0 && (() => {
-                        const totalPages = Math.ceil(properties.length / PRODUCTS_PER_PAGE);
-                        const visibleProducts = properties.slice(productOffset, productOffset + PRODUCTS_PER_PAGE);
                         return (
                             <section className="py-16 bg-white border-t border-gray-100">
                                 <div className="max-w-7xl mx-auto px-4">
                                     <div className="text-center mb-10">
-                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1">Sản phẩm</h2>
+                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1 hover:text-[#e2cb83] transition-colors inline-block">
+                                            <Link href={`/du-an/${slug}/san-pham`}>Sản phẩm</Link>
+                                        </h2>
                                         <p className="text-gray-400 text-sm">Đa dạng lựa chọn cho mọi nhu cầu</p>
                                         <div className="w-10 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
                                     </div>
-                                    <div className="relative">
-                                        {productOffset > 0 && (
-                                            <button onClick={() => setProductOffset(o => Math.max(0, o - PRODUCTS_PER_PAGE))} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                                            </button>
-                                        )}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            {visibleProducts.map(prop => (
-                                                <div key={prop.id} className="bg-white rounded-2xl overflow-hidden group hover:shadow-xl transition-all duration-300 border border-gray-100">
-                                                    <div className="relative h-56 bg-gray-50 overflow-hidden flex items-center justify-center">
+                                    <div className="relative group">
+                                        <button onClick={() => scrollSlider(productRef, 'left')} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#62908f] transition-all hover:scale-105 opacity-0 group-hover:opacity-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                        </button>
+
+                                        <div 
+                                            ref={productRef} 
+                                            className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-6 cursor-grab active:cursor-grabbing pb-4"
+                                        >
+                                            {properties.map((prop, idx) => (
+                                                <div key={prop.id || idx} className="min-w-[85vw] sm:min-w-[calc(50%-12px)] md:min-w-[calc(33.333%-16px)] shrink-0 snap-center bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 border border-gray-100 select-none">
+                                                    <div className="relative h-56 bg-gray-50 overflow-hidden flex items-center justify-center pointer-events-none">
                                                         {(prop.main_image_url || prop.main_image) ? (
-                                                            <img src={prop.main_image_url || prop.main_image || ''} alt={prop.name || prop.product_type || 'Sản phẩm'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                            <img src={prop.main_image_url || prop.main_image || ''} alt={prop.name || prop.product_type || 'Sản phẩm'} className="w-full h-full object-cover transition-transform duration-500" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center bg-gray-100">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="#ccc" className="w-16 h-16"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21" /></svg>
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="p-5">
+                                                    <div className="p-5 pointer-events-none">
                                                         <h3 className="text-[#62908f] font-semibold text-base mb-1.5">{prop.name || prop.product_type || `Sản phẩm #${prop.id}`}</h3>
                                                         {prop.area && <p className="text-gray-500 text-sm">Diện tích: <span className="font-medium text-gray-700">~{prop.area} m²</span></p>}
                                                         {prop.floor && <p className="text-gray-500 text-sm">Tầng: <span className="font-medium text-gray-700">{prop.floor}</span></p>}
@@ -277,24 +377,12 @@ export default function ProjectSectionPage({
                                                     </div>
                                                 </div>
                                             ))}
-                                            {visibleProducts.length < PRODUCTS_PER_PAGE && Array.from({ length: PRODUCTS_PER_PAGE - visibleProducts.length }).map((_, i) => (
-                                                <div key={`ph-${i}`} className="hidden md:block" />
-                                            ))}
                                         </div>
-                                        {productOffset + PRODUCTS_PER_PAGE < properties.length && (
-                                            <button onClick={() => setProductOffset(o => o + PRODUCTS_PER_PAGE)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                                            </button>
-                                        )}
+
+                                        <button onClick={() => scrollSlider(productRef, 'right')} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#62908f] transition-all hover:scale-105 opacity-0 group-hover:opacity-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                        </button>
                                     </div>
-                                    {totalPages > 1 && (
-                                        <div className="flex justify-center gap-2 mt-8">
-                                            {Array.from({ length: totalPages }).map((_, idx) => {
-                                                const isActive = Math.floor(productOffset / PRODUCTS_PER_PAGE) === idx;
-                                                return <button key={idx} onClick={() => setProductOffset(idx * PRODUCTS_PER_PAGE)} className={`rounded-full transition-all ${isActive ? 'w-6 h-2.5 bg-[#e2cb83]' : 'w-2.5 h-2.5 bg-gray-200 hover:bg-gray-300'}`} />;
-                                            })}
-                                        </div>
-                                    )}
                                 </div>
                             </section>
                         );
@@ -311,7 +399,9 @@ export default function ProjectSectionPage({
                                 <div className="max-w-7xl mx-auto px-4">
                                     {/* Header */}
                                     <div className="text-center mb-10">
-                                        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-tight mb-2">Mặt Bằng</h2>
+                                        <h2 className="text-3xl font-bold text-gray-800 uppercase tracking-tight mb-2 hover:text-[#e2cb83] transition-colors inline-block">
+                                            <Link href={`/du-an/${slug}/layout`}>Mặt Bằng</Link>
+                                        </h2>
                                         <p className="text-gray-500 text-sm">Thiết kế chi tiết các tầng</p>
                                         <div className="w-12 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
                                     </div>
@@ -371,56 +461,38 @@ export default function ProjectSectionPage({
                     {(() => {
                         const amenities: { image: string; image_url?: string; title: string; desc: string; isHighlight?: boolean }[] = (translation?.amenities as any) || [];
                         if (!amenities || amenities.length === 0) return null;
-                        const AMENITY_PAGE = 4;
-                        const canPrev = amenityOffset > 0;
-                        const canNext = amenityOffset + AMENITY_PAGE < amenities.length;
-                        const visible = amenities.slice(amenityOffset, amenityOffset + AMENITY_PAGE);
 
                         return (
-                            <section className="py-16 bg-white border-t border-gray-100">
+                            <section className="py-16 bg-white border-t border-gray-100 overflow-hidden">
                                 <div className="max-w-7xl mx-auto px-4">
                                     {/* Header */}
                                     <div className="text-center mb-10">
-                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1">Tiện Ích</h2>
+                                        <h2 className="text-3xl font-bold text-[#62908f] tracking-tight mb-1 hover:text-[#e2cb83] transition-colors inline-block">
+                                            <Link href={`/du-an/${slug}/tien-ich`}>Tiện Ích</Link>
+                                        </h2>
                                         <p className="text-gray-400 text-sm">Hệ thống tiện ích đẳng cấp phiên bản thượng lưu</p>
                                         <div className="w-10 h-0.5 bg-[#e2cb83] mx-auto mt-4"></div>
                                     </div>
 
                                     {/* Slider */}
-                                    <div className="relative">
+                                    <div className="relative group">
                                         {/* Prev */}
-                                        {canPrev && (
-                                            <button onClick={() => setAmenityOffset(o => Math.max(0, o - 1))} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-                                            </button>
-                                        )}
+                                        <button onClick={() => scrollSlider(amenityRef, 'left')} className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#62908f] transition-all hover:scale-105 opacity-0 group-hover:opacity-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+                                        </button>
 
                                         {/* Draggable track */}
                                         <div
-                                            className="grid grid-cols-2 md:grid-cols-4 gap-4 select-none cursor-grab active:cursor-grabbing"
-                                            onMouseDown={(e) => {
-                                                const startX = e.clientX;
-                                                let moved = false;
-                                                const onMove = (ev: MouseEvent) => { if (Math.abs(ev.clientX - startX) > 10) moved = true; };
-                                                const onUp = (ev: MouseEvent) => {
-                                                    document.removeEventListener('mousemove', onMove);
-                                                    document.removeEventListener('mouseup', onUp);
-                                                    if (!moved) return;
-                                                    const diff = ev.clientX - startX;
-                                                    if (diff < -40 && amenityOffset + AMENITY_PAGE < amenities.length) setAmenityOffset(o => o + 1);
-                                                    if (diff > 40 && amenityOffset > 0) setAmenityOffset(o => Math.max(0, o - 1));
-                                                };
-                                                document.addEventListener('mousemove', onMove);
-                                                document.addEventListener('mouseup', onUp);
-                                            }}
+                                            ref={amenityRef}
+                                            className="flex overflow-x-auto snap-x snap-mandatory gap-4 hide-scrollbar cursor-grab active:cursor-grabbing pb-4"
                                         >
-                                            {visible.map((am, idx) => {
+                                            {amenities.map((am, idx) => {
                                                 const imgSrc = am.image_url || (am.image && am.image.startsWith('http') ? am.image : am.image ? `/storage/${am.image}` : null);
                                                 return (
-                                                    <div key={amenityOffset + idx} className="group rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 bg-white">
-                                                        <div className="h-48 overflow-hidden bg-gray-100">
+                                                    <div key={`am-${idx}`} className="min-w-[85vw] sm:min-w-[calc(50%-8px)] md:min-w-[calc(25%-12px)] shrink-0 snap-center rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 bg-white select-none relative group/item">
+                                                        <div className="h-48 overflow-hidden bg-gray-100 relative pointer-events-none">
                                                             {imgSrc ? (
-                                                                <img src={imgSrc} alt={am.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 pointer-events-none" />
+                                                                <img src={imgSrc} alt={am.title} className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500" />
                                                             ) : (
                                                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-12 h-12"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3 3h18M3 3v18" /></svg>
@@ -428,36 +500,21 @@ export default function ProjectSectionPage({
                                                             )}
                                                         </div>
                                                         {am.title && (
-                                                            <div className="p-3">
+                                                            <div className="p-4 pointer-events-none">
                                                                 <p className="text-[#62908f] font-semibold text-sm leading-snug">{am.title}</p>
-                                                                {am.desc && <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{am.desc}</p>}
+                                                                {am.desc && <p className="text-gray-400 text-xs mt-1 line-clamp-2">{am.desc}</p>}
                                                             </div>
                                                         )}
                                                     </div>
                                                 );
                                             })}
-                                            {/* Fill empty slots */}
-                                            {visible.length < AMENITY_PAGE && Array.from({ length: AMENITY_PAGE - visible.length }).map((_, i) => (
-                                                <div key={`ae-${i}`} className="hidden md:block" />
-                                            ))}
                                         </div>
 
                                         {/* Next */}
-                                        {canNext && (
-                                            <button onClick={() => setAmenityOffset(o => o + 1)} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-500 hover:text-[#62908f] transition-all hover:scale-105">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-                                            </button>
-                                        )}
+                                        <button onClick={() => scrollSlider(amenityRef, 'right')} className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 size-10 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-[#62908f] transition-all hover:scale-105 opacity-0 group-hover:opacity-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+                                        </button>
                                     </div>
-
-                                    {/* Progress dots */}
-                                    {amenities.length > AMENITY_PAGE && (
-                                        <div className="flex justify-center gap-1.5 mt-8">
-                                            {Array.from({ length: amenities.length - AMENITY_PAGE + 1 }).map((_, i) => (
-                                                <button key={i} onClick={() => setAmenityOffset(i)} className={`rounded-full transition-all ${amenityOffset === i ? 'w-5 h-2 bg-[#e2cb83]' : 'w-2 h-2 bg-gray-200 hover:bg-gray-300'}`} />
-                                            ))}
-                                        </div>
-                                    )}
                                 </div>
                             </section>
                         );
@@ -615,6 +672,44 @@ export default function ProjectSectionPage({
             );
         case "tien-do":
             const progressHistory = translation?.construction_progress || [];
+            
+            // Hàm tạo slug từ string tiếng Việt
+            const createSlug = (str: string) => {
+                if (!str) return "thang-01";
+                return str.toString().toLowerCase()
+                    .replace(/á|à|ả|ạ|ã|ă|ắ|ằ|ẳ|ẵ|ặ|â|ấ|ầ|ẩ|ẫ|ậ/gi, 'a')
+                    .replace(/é|è|ẻ|ẽ|ẹ|ê|ế|ề|ể|ễ|ệ/gi, 'e')
+                    .replace(/i|í|ì|ỉ|ĩ|ị/gi, 'i')
+                    .replace(/ó|ò|ỏ|õ|ọ|ô|ố|ồ|ổ|ỗ|ộ|ơ|ớ|ờ|ở|ỡ|ợ/gi, 'o')
+                    .replace(/ú|ù|ủ|ũ|ụ|ư|ứ|ừ|ử|ữ|ự/gi, 'u')
+                    .replace(/ý|ỳ|ỷ|ỹ|ỵ/gi, 'y')
+                    .replace(/đ/gi, 'd')
+                    .replace(/\s+/g, '-')
+                    .replace(/[^a-z0-9\-]/g, '')
+                    .replace(/\-+/g, '-')
+                    .replace(/^-|-$/g, '');
+            };
+
+            // Gom nhóm theo date
+            const groupedProgress = useMemo(() => {
+                const groups: { [key: string]: typeof progressHistory } = {};
+                progressHistory.forEach((item: any) => {
+                    const dateKey = item.date || "Khác";
+                    if (!groups[dateKey]) {
+                        groups[dateKey] = [];
+                    }
+                    groups[dateKey].push(item);
+                });
+                
+                return Object.keys(groups).map((date) => {
+                    return {
+                        date,
+                        slug: createSlug(date),
+                        items: groups[date],
+                        preview: groups[date][0], // Lấy item đầu tiên (mới nhất)
+                    };
+                });
+            }, [progressHistory]);
 
             return (
                 <section className="py-20 bg-gray-50 min-h-screen">
@@ -625,40 +720,72 @@ export default function ProjectSectionPage({
                             <p className="text-gray-500 mt-4 max-w-2xl mx-auto">Cập nhật liên tục những hình ảnh và thông tin mới nhất về tiến độ thi công của dự án, đảm bảo cam kết chất lượng và thời gian bàn giao.</p>
                         </div>
 
-                        {progressHistory.length > 0 ? (
+                        {groupedProgress.length > 0 ? (
                             <div className="relative border-l-2 border-[#e2cb83]/30 ml-4 md:ml-10 space-y-12 pb-8">
-                                {progressHistory.map((item: any, idx: number) => (
-                                    <div key={idx} className="relative pl-8 md:pl-16">
-                                        {/* Timeline Dot */}
-                                        <div className="absolute top-0 -left-[9px] w-4 h-4 rounded-full bg-[#e2cb83] border-4 border-white shadow-sm"></div>
+                                {groupedProgress.map((group, idx: number) => {
+                                    const { preview } = group;
+                                    const isVideo = preview?.image && (preview.image.endsWith('.mp4') || preview.image.endsWith('.webm'));
+                                    
+                                    return (
+                                        <div key={idx} className="relative pl-8 md:pl-16">
+                                            {/* Timeline Dot */}
+                                            <div className="absolute top-0 -left-[9px] w-4 h-4 rounded-full bg-[#e2cb83] border-4 border-white shadow-sm"></div>
 
-                                        <div className="bg-white rounded-custom p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                                            <div className="flex flex-col md:flex-row gap-8">
-                                                <div className="w-full md:w-1/3 shrink-0">
-                                                    <div className="aspect-video md:aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 relative group">
-                                                        <img
-                                                            src={item.image || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg"}
-                                                            alt={item.title}
-                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                        />
-                                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <span className="material-symbols-outlined text-white text-4xl">zoom_in</span>
+                                            <div className="bg-white rounded-custom p-6 md:p-8 shadow-sm border border-gray-100 hover:shadow-md transition-[box-shadow_transform] hover:-translate-y-1 hover:border-[#e2cb83]/30">
+                                                <Link href={`/du-an/${slug}/tien-do/${group.slug}`} className="flex flex-col md:flex-row gap-8 relative group">
+                                                    <div className="w-full md:w-1/3 shrink-0 relative">
+                                                        <div className="aspect-video md:aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 relative group-hover:shadow-md transition-shadow">
+                                                            {isVideo ? (
+                                                                <video
+                                                                    src={preview.image}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                                    muted
+                                                                    loop
+                                                                    playsInline
+                                                                    autoPlay
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={preview.image || "https://masterisehomes.com/masteri-centre-point/themes/mcp/assets/images/progress/img-1.jpg"}
+                                                                    alt={preview.title}
+                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                                />
+                                                            )}
+                                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10 text-white drop-shadow-lg">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                                                </svg>
+                                                            </div>
+                                                            {group.items.length > 1 && (
+                                                                <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-lg border border-white/10">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                                                    </svg>
+                                                                    <span>+{group.items.length - 1} ảnh/video</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex-1 flex flex-col justify-center">
-                                                    <span className="inline-block px-3 py-1 bg-gray-100 text-gray-600 font-bold text-xs uppercase tracking-widest rounded-full w-max mb-4">
-                                                        {item.date || "Đang cập nhật"}
-                                                    </span>
-                                                    <h3 className="text-2xl font-bold text-gray-800 mb-3">{item.title}</h3>
-                                                    <p className="text-gray-600 leading-relaxed text-[15px]">
-                                                        {item.desc || "Chi tiết đang được cập nhật..."}
-                                                    </p>
-                                                </div>
+                                                    <div className="flex-1 flex flex-col justify-center">
+                                                        <h3 className="text-3xl font-black text-[#e2cb83] mb-4 uppercase tracking-tight group-hover:text-[#c4ae65] transition-colors">{group.date}</h3>
+                                                        <h4 className="text-xl font-bold text-gray-800 mb-3">{preview.title}</h4>
+                                                        <p className="text-gray-600 leading-relaxed text-[15px] line-clamp-3">
+                                                            {preview.desc || "Click để xem chi tiết hình ảnh và video tiến độ..."}
+                                                        </p>
+                                                        <div className="mt-8">
+                                                            <span className="inline-flex items-center gap-2 text-sm font-bold text-[#e2cb83] group-hover:text-[#c4ae65] transition-colors uppercase tracking-widest border border-[#e2cb83]/30 px-5 py-2.5 rounded-full group-hover:bg-[#e2cb83]/5">
+                                                                Xem chi tiết
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5 group-hover:translate-x-1 transition-transform">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </Link>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : (
                             <div className="text-center text-gray-500 py-20 bg-white rounded-custom shadow-sm border border-dashed border-gray-200">
