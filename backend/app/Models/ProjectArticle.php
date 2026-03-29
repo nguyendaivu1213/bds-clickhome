@@ -11,7 +11,7 @@ class ProjectArticle extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'project_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
+        'project_id', 'author_id', 'type', 'layout_type', 'target_link', 'banner_image', 'status', 'display_order'
     ];
 
     public $translatedAttributes = [
@@ -21,5 +21,10 @@ class ProjectArticle extends Model implements TranslatableContract
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }

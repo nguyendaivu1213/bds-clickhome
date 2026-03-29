@@ -11,7 +11,7 @@ class Project extends Model implements TranslatableContract
     use HasFactory, Translatable;
 
     protected $fillable = [
-        'site_id', 'investor_id', 'primary_category_id', 
+        'site_id', 'investor_id', 'primary_category_id', 'author_id', 
         'perspective_image', 'footer_image', 'banner_type', 'publish_date', 
         'google_map', 'latitude', 'longitude', 'location_image', 
         'sample_apartment_360', 'living_room_360', 'bedroom_360', 'balcony_360', 'amenities_360',
@@ -72,5 +72,10 @@ class Project extends Model implements TranslatableContract
     public function properties()
     {
         return $this->hasMany(Property::class);
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(User::class, 'author_id');
     }
 }

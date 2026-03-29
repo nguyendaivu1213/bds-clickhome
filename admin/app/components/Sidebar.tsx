@@ -114,6 +114,14 @@ export default function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsO
           <div className="pt-4 pb-2">
             <p className="px-4 text-[10px] uppercase font-bold text-slate-400 tracking-widest">Hệ Thống</p>
           </div>
+          <Link href="/users" className="flex items-center mb-1 gap-3 px-4 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-primary transition-all">
+            <span className="material-symbols-outlined text-[20px]">group</span>
+            <span className="font-medium text-sm">Quản trị viên</span>
+          </Link>
+          <Link href="/roles" className="flex items-center mb-1 gap-3 px-4 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-primary transition-all">
+            <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+            <span className="font-medium text-sm">Vai trò (Roles)</span>
+          </Link>
           <Link href="/media" className="flex items-center mb-1 gap-3 px-4 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-primary transition-all">
             <span className="material-symbols-outlined text-[20px]">imagesmode</span>
             <span className="font-medium text-sm">Đa phương tiện</span>

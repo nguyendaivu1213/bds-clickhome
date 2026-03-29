@@ -30,6 +30,7 @@ class ZoneArticleController extends Controller
 
         $article = ZoneArticle::create([
             'zone_id' => $request->zone_id,
+            'author_id' => auth()->id() ?? 1,
             'type' => $request->type ?? 'article',
             'banner_image' => $request->banner_image,
             'status' => $request->status,

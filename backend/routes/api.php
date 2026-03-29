@@ -2,7 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Api\Admin\ProjectController as AdminProjectController;
 use App\Http\Controllers\Api\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Api\Admin\CategoryController as AdminCategoryController;
@@ -13,6 +12,10 @@ use App\Http\Controllers\Api\Admin\FolderController as AdminFolderController;
 use App\Http\Controllers\Api\Admin\ProjectZoneController as AdminProjectZoneController;
 use App\Http\Controllers\Api\Admin\ProjectArticleController as AdminProjectArticleController;
 use App\Http\Controllers\Api\Admin\ZoneArticleController as AdminZoneArticleController;
+use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
+use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Api\Admin\RoleController as AdminRoleController;
 
 use App\Http\Controllers\Api\Frontend\HomeController;
 use App\Http\Controllers\Api\Frontend\ProjectController;
@@ -28,9 +31,16 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
+Route::group(['prefix' => 'v1/admin', 'as' => 'admin.'], function () {
+    Route::post('login', [AdminAuthController::class, 'login'])->name('login');
 
-Route::prefix('v1/admin')->as('admin.')->group(function () {
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::get('me', [AdminAuthController::class, 'me'])->name('me');
+        Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
+        Route::apiResource('users', AdminUserController::class);
+        Route::apiResource('roles', AdminRoleController::class);
+    });
+
     Route::apiResource('projects', AdminProjectController::class);
     Route::apiResource('posts', AdminPostController::class);
     Route::apiResource('categories', AdminCategoryController::class);

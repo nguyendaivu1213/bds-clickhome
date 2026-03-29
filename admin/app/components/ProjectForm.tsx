@@ -27,15 +27,15 @@ interface ProjectFormProps {
 
 const TABS = [
   { id: "info", label: "Tổng quan", icon: "info" },
-  { id: "seo", label: "SEO", icon: "search" },
   { id: "location", label: "Vị trí", icon: "location_on" },
-  { id: "360", label: "360 độ", icon: "360" },
   { id: "layout", label: "Mặt bằng & Layout", icon: "layers" },
   { id: "amenities", label: "Tiện ích", icon: "pool" },
+  { id: "360", label: "360 độ", icon: "360" },
   { id: "media", label: "Hình ảnh & Video", icon: "imagesmode" },
   { id: "pricing", label: "Giá & Chính sách", icon: "sell" },
   { id: "progress", label: "Tiến độ", icon: "event_available" },
   { id: "contact", label: "Liên hệ", icon: "contact_support" },
+  { id: "seo", label: "Setting", icon: "settings" },
 ];
 
 const DEFAULT_FORM_DATA = {
@@ -43,12 +43,22 @@ const DEFAULT_FORM_DATA = {
   mainCategory: "",
   subCategory: "",
   tags: "",
+  overviewSpecs: [
+     { icon: "crop_free", name: "Quy mô dự án", value: "", isVisible: true },
+     { icon: "location_on", name: "Địa chỉ thực tế", value: "", isVisible: true },
+     { icon: "architecture", name: "Đơn vị thiết kế", value: "", isVisible: true },
+     { icon: "gavel", name: "Tình trạng pháp lý", value: "", isVisible: true },
+     { icon: "calendar_month", name: "Thời gian bàn giao", value: "", isVisible: true },
+  ],
   perspectiveImage: "",
   footerImage: "",
   bannerType: "full_banner",
   slogan: "",
   shortDesc: "",
   fullDesc: "",
+  htmlContent: "",
+  productShortDesc: "",
+  productLongDesc: "",
   publishDate: "",
   url: "",
   urlPrefix: "https://clickhome.vn/du-an/",
@@ -110,9 +120,31 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
   const [currentMediaTarget, setCurrentMediaTarget] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [investors, setInvestors] = useState<Investor[]>([]);
+  const [overviewIcons, setOverviewIcons] = useState<{label: string, value: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isAutoSlug, setIsAutoSlug] = useState(mode === "create");
+
+  const [projectArticles, setProjectArticles] = useState<any[]>([]);
+  const [loadingArticles, setLoadingArticles] = useState(false);
+
+  useEffect(() => {
+    if (mode === "update" && initialData?.id) {
+      setLoadingArticles(true);
+      fetch(`${API_BASE}/project-articles?project_id=${initialData.id}&per_page=100`, {
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(r => r.json())
+      .then(data => {
+        const items = (data.data ?? data) as any[];
+        const overviewItems = Array.isArray(items) ? items.filter(a => a.type === "overview") : [];
+        const sortedItems = overviewItems.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+        setProjectArticles(sortedItems);
+      })
+      .catch(err => console.error("Lỗi khi tải bài viết dự án:", err))
+      .finally(() => setLoadingArticles(false));
+    }
+  }, [mode, initialData?.id]);
 
   useEffect(() => {
     async function fetchInvestors() {
@@ -136,6 +168,33 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
       }
     }
     fetchInvestors();
+  }, []);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/settings`, { headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+          const data = await res.json();
+          const dynamicSelections = data.dynamic_selections || [];
+          const list = dynamicSelections.find((l: any) => l.key === 'overview_icons');
+          if (list && list.options && list.options.length > 0) {
+            setOverviewIcons(list.options);
+          } else {
+            setOverviewIcons([
+               { value: 'crop_free', label: 'Quy mô (crop_free)' },
+               { value: 'location_on', label: 'Vị trí (location_on)' },
+               { value: 'architecture', label: 'Thiết kế (architecture)' },
+               { value: 'gavel', label: 'Pháp lý (gavel)' },
+               { value: 'calendar_month', label: 'Thời gian (calendar)' },
+               { value: 'home', label: 'Nhà (home)' },
+               { value: 'star', label: 'Nổi bật (star)' }
+            ]);
+          }
+        }
+      } catch (err) {}
+    }
+    fetchSettings();
   }, []);
 
   useEffect(() => {
@@ -235,11 +294,24 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
       const url = mode === "create" ? `${API_BASE}/projects` : `${API_BASE}/projects/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
+      let authorId = 1;
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+      };
+      
+      try {
+        const cookieId = getCookie('admin_user_id');
+        if (cookieId) authorId = parseInt(cookieId);
+      } catch (e) {}
+
       const bodyData = { 
         ...formData,
         mainCategory: formData.mainCategory ? parseInt(formData.mainCategory) : null,
         investor: formData.investor ? parseInt(formData.investor) : null,
         order: formData.order ? parseInt(String(formData.order)) : 0,
+        author_id: authorId,
       };
 
       const res = await fetch(url, {
@@ -370,7 +442,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                        <label className="text-sm font-bold text-slate-700">Chủ đầu tư</label>
                        <select 
                          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium"
-                         value={formData.investor}
+                         value={formData.investor || ""}
                          onChange={(e) => handleInputChange("investor", e.target.value)}
                        >
                          <option value="">Chọn chủ đầu tư</option>
@@ -391,56 +463,29 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-slate-700">Mô tả ngắn (Description)</label>
-                  <textarea 
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-medium min-h-[100px] resize-none"
-                    placeholder="Nhập mô tả ngắn gọn về dự án..."
-                    value={formData.shortDesc || ""}
-                    onChange={(e) => handleInputChange("shortDesc", e.target.value)}
-                  />
+                <div className="flex flex-col gap-2 mt-6">
+                  <label className="text-sm font-bold text-slate-700">Youtube Link</label>
+                  <input placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.youtube_link || ""} onChange={(e) => handleInputChange("youtube_link", e.target.value)} />
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-bold text-slate-700">Thẻ từ khóa (Tags)</label>
-                  <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 min-h-[50px]">
-                    {(formData.tags || "").split(",").filter(Boolean).map((tag: string, i: number) => (
-                      <span key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 shadow-sm transition-all group hover:border-primary">
-                        {tag.trim()}
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            const currentTags = formData.tags.split(",").filter(Boolean);
-                            const newTags = currentTags.filter((_: string, idx: number) => idx !== i);
-                            handleInputChange("tags", newTags.join(","));
-                          }}
-                          className="material-symbols-outlined text-sm text-slate-300 hover:text-red-500"
-                        >
-                          close
-                        </button>
-                      </span>
-                    ))}
-                    <input 
-                      className="flex-1 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 placeholder:text-slate-300"
-                      placeholder="Thêm tag (VD: chung-cu, quan-2)..."
-                      onKeyDown={(e: any) => {
-                        if (e.key === "Enter" && e.target.value.trim()) {
-                           e.preventDefault();
-                           const currentTags = formData.tags ? formData.tags.split(",") : [];
-                           const newTags = [...currentTags, e.target.value.trim()];
-                           handleInputChange("tags", newTags.join(","));
-                           e.target.value = "";
-                        }
-                      }}
-                    />
-                  </div>
+
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">summarize</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung ngắn</h3>
                 </div>
+                <RichTextEditor 
+                   content={formData.shortDesc} 
+                   onChange={(val) => handleInputChange("shortDesc", val)} 
+                />
               </section>
 
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung chi tiết (Rich Text)</h3>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung tóm tắt</h3>
                 </div>
                 <RichTextEditor 
                    content={formData.fullDesc} 
@@ -450,39 +495,78 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
 
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan chi tiết</h3>
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">description</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nội dung chi tiết</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.htmlContent} 
+                   onChange={(val) => handleInputChange("htmlContent", val)} 
+                />
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">info</span>
+                    <h3 className="text-xl font-bold text-slate-900 font-display">Tổng quan chi tiết</h3>
+                  </div>
+                  <button type="button" onClick={() => handleInputChange("overviewSpecs", [...(formData.overviewSpecs || []), { icon: "star", name: "Thông số mới", value: "", isVisible: true }])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm thông số</button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="space-y-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Quy mô dự án</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.scale} onChange={(e) => handleInputChange("scale", e.target.value)} />
+                <div className="space-y-4">
+                   {formData.overviewSpecs?.map((spec: any, idx: number) => (
+                      <div key={idx} className="flex items-start gap-4 bg-slate-50 p-4 border border-slate-100 rounded-2xl group">
+                         <div className="flex items-center gap-2 cursor-pointer mt-2.5" onClick={() => {
+                            const newSpecs = [...formData.overviewSpecs];
+                            newSpecs[idx].isVisible = !newSpecs[idx].isVisible;
+                            handleInputChange("overviewSpecs", newSpecs);
+                         }}>
+                            <div className={`size-5 rounded flex items-center justify-center border transition-colors ${spec.isVisible ? 'bg-primary border-primary' : 'bg-white border-slate-300'}`}>
+                               <span className="material-symbols-outlined text-[14px] text-white opacity-100">check</span>
+                            </div>
+                         </div>
+                         <div className="flex-1 grid grid-cols-12 gap-3 items-center">
+                            <div className="col-span-12 md:col-span-3">
+                               <div className="flex bg-white border border-slate-200 rounded-lg focus-within:border-primary overflow-hidden items-center px-2">
+                                  {spec.icon && spec.icon.startsWith('<svg') ? (
+                                    <div className="size-5 flex items-center justify-center text-slate-500" dangerouslySetInnerHTML={{ __html: spec.icon }} />
+                                  ) : spec.icon ? (
+                                    <span className="material-symbols-outlined text-slate-500 text-base">{spec.icon}</span>
+                                  ) : null}
+                                  <select className="flex-1 min-w-[100px] bg-transparent px-2 py-2 text-sm font-medium outline-none cursor-pointer text-slate-700 w-[150px] truncate" value={spec.icon || ""} onChange={(e) => {
+                                     const newSpecs = [...formData.overviewSpecs];
+                                     newSpecs[idx].icon = e.target.value;
+                                     handleInputChange("overviewSpecs", newSpecs);
+                                  }}>
+                                     <option value="">Chọn icon...</option>
+                                     {overviewIcons.map((ico, iIdx) => (
+                                        <option key={iIdx} value={ico.value}>{ico.label}</option>
+                                     ))}
+                                  </select>
+                               </div>
+                            </div>
+                            <div className="col-span-12 md:col-span-4">
+                               <input className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-bold outline-none focus:border-primary" placeholder="Tên (VD: Quy mô dự án)..." value={spec.name || ""} onChange={(e) => {
+                                  const newSpecs = [...formData.overviewSpecs];
+                                  newSpecs[idx].name = e.target.value;
+                                  handleInputChange("overviewSpecs", newSpecs);
+                               }} />
+                            </div>
+                            <div className="col-span-12 md:col-span-4">
+                               <input className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg text-sm font-medium outline-none focus:border-primary" placeholder="Giá trị (VD: 10 ha)..." value={spec.value || ""} onChange={(e) => {
+                                  const newSpecs = [...formData.overviewSpecs];
+                                  newSpecs[idx].value = e.target.value;
+                                  handleInputChange("overviewSpecs", newSpecs);
+                               }} />
+                            </div>
+                            <div className="col-span-12 md:col-span-1 flex justify-end">
+                               <button type="button" onClick={() => handleInputChange("overviewSpecs", formData.overviewSpecs.filter((_: any, i: number) => i !== idx))} className="text-slate-400 bg-white border border-slate-200 size-8 rounded-lg flex justify-center items-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all">
+                                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                               </button>
+                            </div>
+                         </div>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Địa chỉ thực tế</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.actualAddress} onChange={(e) => handleInputChange("actualAddress", e.target.value)} />
-                      </div>
-                   </div>
-                   <div className="space-y-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Đơn vị thiết kế</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.designUnit} onChange={(e) => handleInputChange("designUnit", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Tình trạng pháp lý</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.legal} onChange={(e) => handleInputChange("legal", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Youtube Link</label>
-                        <input placeholder="https://www.youtube.com/watch?v=..." className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.youtube_link} onChange={(e) => handleInputChange("youtube_link", e.target.value)} />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-sm font-bold text-slate-700">Thời gian bàn giao</label>
-                        <input className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary outline-none" value={formData.handoffTime} onChange={(e) => handleInputChange("handoffTime", e.target.value)} />
-                      </div>
-                   </div>
+                   ))}
                 </div>
               </section>
 
@@ -512,6 +596,78 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   ))}
                 </div>
               </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">subject</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nói về sản phẩm (ngắn)</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.productShortDesc} 
+                   onChange={(val) => handleInputChange("productShortDesc", val)} 
+                />
+              </section>
+
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">article</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Nói về sản phẩm (dài)</h3>
+                </div>
+                <RichTextEditor 
+                   content={formData.productLongDesc} 
+                   onChange={(val) => handleInputChange("productLongDesc", val)} 
+                />
+              </section>
+
+              {mode === "update" && initialData?.id && (
+              <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                  <div className="flex items-center gap-3">
+                     <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">library_books</span>
+                     <h3 className="text-xl font-bold text-slate-900 font-display">Các bài viết tổng quan</h3>
+                  </div>
+                  <Link href={`/project-articles/create?project_id=${initialData.id}&type=overview`} className="px-5 py-2.5 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all text-xs tracking-widest uppercase flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Thêm bài tổng quan
+                  </Link>
+                </div>
+                
+                {loadingArticles ? (
+                  <div className="text-center py-6 text-slate-400 font-medium animate-pulse">Đang tải dữ liệu...</div>
+                ) : projectArticles.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-slate-100 rounded-2xl bg-slate-50">
+                     <span className="material-symbols-outlined text-5xl text-slate-300 mb-2">article</span>
+                     <p className="text-slate-500 font-medium">Chưa có bài viết tổng quan nào cho dự án này.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {projectArticles.map((article: any) => {
+                      const trans = article.translations?.find((t: any) => t.locale === 'vi') ?? article.translations?.[0];
+                      const title = trans?.title ?? article.title ?? "Không có tiêu đề";
+                      
+                      return (
+                      <Link 
+                        key={article.id}
+                        href={`/project-articles/update/${article.id}`} 
+                        className="flex items-center gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl hover:border-primary hover:bg-white transition-all group"
+                      >
+                        <div className="size-12 rounded-xl bg-primary/5 text-primary flex items-center justify-center font-black">
+                           {(article.display_order ?? 0)}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                           <h4 className="font-bold text-slate-800 group-hover:text-primary transition-colors">{title}</h4>
+                           <div className="flex items-center gap-3 text-xs font-medium text-slate-400">
+                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(article.created_at).toLocaleDateString("vi-VN")}</span>
+                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">{article.is_published ? 'visibility' : 'visibility_off'}</span> {article.is_published ? 'Công khai' : 'Bản nháp'}</span>
+                           </div>
+                        </div>
+                        <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                      </Link>
+                    )})}
+                  </div>
+                )}
+              </section>
+              )}
             </div>
           )}
 
@@ -519,11 +675,45 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <section className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">search</span>
-                  <h3 className="text-xl font-bold text-slate-900 font-display">Cấu hình SEO</h3>
+                  <span className="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-xl">settings</span>
+                  <h3 className="text-xl font-bold text-slate-900 font-display">Cấu hình Setting</h3>
                 </div>
 
                 <div className="space-y-6">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-bold text-slate-700">Thẻ từ khóa (Tags)</label>
+                    <div className="flex flex-wrap gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 min-h-[50px]">
+                      {(formData.tags || "").split(",").filter(Boolean).map((tag: string, i: number) => (
+                        <span key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-700 shadow-sm transition-all group hover:border-primary">
+                          {tag.trim()}
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const currentTags = formData.tags.split(",").filter(Boolean);
+                              const newTags = currentTags.filter((_: string, idx: number) => idx !== i);
+                              handleInputChange("tags", newTags.join(","));
+                            }}
+                            className="material-symbols-outlined text-sm text-slate-300 hover:text-red-500"
+                          >
+                            close
+                          </button>
+                        </span>
+                      ))}
+                      <input 
+                        className="flex-1 bg-transparent border-none p-0 text-xs font-bold focus:ring-0 placeholder:text-slate-300"
+                        placeholder="Thêm tag (VD: chung-cu, quan-2)..."
+                        onKeyDown={(e: any) => {
+                          if (e.key === "Enter" && e.target.value.trim()) {
+                             e.preventDefault();
+                             const currentTags = formData.tags ? formData.tags.split(",") : [];
+                             const newTags = [...currentTags, e.target.value.trim()];
+                             handleInputChange("tags", newTags.join(","));
+                             e.target.value = "";
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-bold text-slate-700">SEO Title</label>
@@ -646,13 +836,16 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                   </div>
                   <div className="lg:col-span-12 space-y-8">
                      <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-                        <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
-                        <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-medium min-h-[120px]" placeholder="Mô tả thế mạnh vị trí..." value={formData.locationStrengths || ""} onChange={(e) => handleInputChange("locationStrengths", e.target.value)} />
+                        <h3 className="font-bold text-lg flex items-center gap-2 mb-2"><span className="material-symbols-outlined text-primary">description</span> Chi tiết vị trí</h3>
+                        <RichTextEditor 
+                           content={formData.locationStrengths} 
+                           onChange={(val) => handleInputChange("locationStrengths", val)} 
+                        />
                      </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="grid grid-cols-1 gap-8">
                         <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
                            <div className="flex justify-between items-center">
-                              <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">image</span> Ảnh thực tế</h3>
+                              <h3 className="font-bold flex items-center gap-2"><span className="material-symbols-outlined text-primary">map</span> Ảnh Map</h3>
                               <button type="button" onClick={() => handleInputChange("realPhotos", [...formData.realPhotos, ""])} className="text-primary text-xs font-black uppercase tracking-widest">+ Thêm</button>
                            </div>
                            <div className="grid grid-cols-2 gap-3">
@@ -664,30 +857,7 @@ export default function ProjectForm({ initialData, mode }: ProjectFormProps) {
                               ))}
                            </div>
                         </div>
-                        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 space-y-6">
-                           <h3 className="font-bold text-primary flex items-center gap-2"><span className="material-symbols-outlined">commute</span> Kết nối vùng</h3>
-                           <div className="space-y-4">
-                              {formData.connections.map((conn: any, idx: number) => (
-                                 <div key={idx} className="bg-white p-4 rounded-2xl border border-primary/10 shadow-sm flex items-center gap-4 group">
-                                    <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><span className="material-symbols-outlined">{conn.icon || "location_on"}</span></div>
-                                    <div className="flex-1">
-                                       <input className="w-full border-none p-0 text-xs font-black text-slate-700 bg-transparent focus:ring-0" value={conn.title || ""} onChange={(e) => {
-                                          const newConn = [...formData.connections];
-                                          newConn[idx].title = e.target.value;
-                                          handleInputChange("connections", newConn);
-                                       }} />
-                                       <input className="w-full border-none p-0 text-[10px] font-bold text-slate-400 bg-transparent focus:ring-0" value={conn.duration || ""} onChange={(e) => {
-                                          const newConn = [...formData.connections];
-                                          newConn[idx].duration = e.target.value;
-                                          handleInputChange("connections", newConn);
-                                       }} />
-                                    </div>
-                                    <button type="button" onClick={() => handleInputChange("connections", formData.connections.filter((_: any, i: number) => i !== idx))} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-colors"><span className="material-symbols-outlined text-sm">delete</span></button>
-                                 </div>
-                              ))}
-                              <button type="button" onClick={() => handleInputChange("connections", [...formData.connections, { icon: "commute", title: "Điểm đến mới", duration: "10 phút" }])} className="w-full py-3 border-2 border-dashed border-primary/20 rounded-2xl text-primary text-[10px] font-black uppercase tracking-widest">+ Thêm kết nối</button>
-                           </div>
-                        </div>
+
                      </div>
                   </div>
                </div>

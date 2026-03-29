@@ -30,6 +30,7 @@ class ProjectArticleController extends Controller
 
         $article = ProjectArticle::create([
             'project_id' => $request->project_id,
+            'author_id' => auth()->id() ?? 1,
             'type' => $request->type ?? 'article',
             'layout_type' => $request->layout_type,
             'target_link' => $request->target_link,
